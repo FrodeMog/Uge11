@@ -11,10 +11,10 @@ def load_data(nrows):
 
     return pdf_urls
 
-def download_files(df):
+def download_files(df, folder='pdf-files'):
     # Create a folder to store the downloaded files
-    if not os.path.exists('pdf-files'):
-        os.makedirs('pdf-files')
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
     # Download the files 
     for index, pdf_url in df.items():
@@ -23,7 +23,7 @@ def download_files(df):
             filename = pdf_url.split('/')[-1]
 
             # Check if the file already exists
-            if os.path.exists(f'pdf-files/{filename}'):
+            if os.path.exists(f'{folder}/{filename}'):
                 print(f'{filename} already exists')
                 continue
 
@@ -40,7 +40,7 @@ def download_files(df):
                 print(f'Error downloading {pdf_url}: Not a valid PDF file')
                 continue
 
-            with open(f'pdf-files/{filename}', 'wb') as file:
+            with open(f'{folder}/{filename}', 'wb') as file:
                 file.write(response.content)
 
             print(f'{filename} downloaded')
