@@ -46,7 +46,7 @@ Status | Requirement | Time | Comment
 Day 1|  | 6h | Up to 2h extra
 ✅| Download manager: Basic | 30m | Day 1
 ✅| Download manager: Limiter of downloads | 30m | Day 1
-⬜| Download manager: Try-catch of requirements | 1h | Day 1
+✅| Download manager: Try-catch of requirements | 1h | Day 1
 ⬜| Download manager: Optimise for speed | 2h | Day 1
 ⬜| Download manager: Optimise for stability | 2h | Day 1
 ⬜| Tests: unit-tests / manual-tests for todays work | 30m | Day 1
