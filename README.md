@@ -3,7 +3,8 @@
 ## Specificaftions
 This project will download specified PDF files from `GRI_2017_2020.xlsx` with URL from column AL: `Pdf_URL` or column AM: `Report Html Address`.
 Gives a list of the downloaded pdf files with naming of the column A: `BRNummer` and whether the file has been downloaded.
-Also `Metadata2006-2016.xlsx` at column AT: `pdf_downloaded` needs to update wether or not the file has been downloaded.
+Also we need a `downloaded list` with a column of download status: `pdf_downloaded` needs to update wether or not the file has been downloaded.
+This list will initially be updated in a database, and the list can later be extracted to a file if required.
 The program needs to handle future pdf downloading of new updated URL lists.
 The PDF-files needs to be accessable through the NAS or other ways.
 
