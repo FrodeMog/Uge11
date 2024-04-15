@@ -5,6 +5,10 @@ from tqdm import tqdm
 import urllib.request
 import socket
 from openpyxl import load_workbook
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Set a default timeout for all socket operations
+socket.setdefaulttimeout(5)
 
 def load_data(file, start=0, nrows=None):
     # Load the workbook
@@ -21,61 +25,61 @@ def load_data(file, start=0, nrows=None):
         # Yield the row as a dictionary
         yield dict(zip(headers, (cell.value for cell in row)))
 
+def download_file(url, folder):
+    try:
+        # Generate a unique filename
+        filename = f'{url.split("/")[-1]}'
 
+        # Check if the file already exists
+        if os.path.exists(f'{folder}/{filename}'):
+            if filename.lower().endswith('.pdf'):
+                return 'already_downloaded'
 
-# Set a default timeout for all socket operations
-socket.setdefaulttimeout(5)
+        # Check if the file is a .pdf
+        if not filename.lower().endswith('.pdf'):
+            return 'failed'
 
-def download_files(rows, folder='pdf-files'):
+        # Open the URL and read the first few bytes
+        with urllib.request.urlopen(url, timeout=10) as u:
+            if not u.read(5).startswith(b'%PDF-'):
+                return 'failed'
+
+        # Download the file
+        urllib.request.urlretrieve(url, f'{folder}/{filename}')
+        return 'successful'
+    except (socket.timeout, Exception) as e:
+        return 'failed'
+
+def download_files(rows, nrows, folder='pdf-files', max_workers=5):
     # Create a folder to store the downloaded files
     if not os.path.exists(folder):
         os.makedirs(folder)
 
     # Initialize counters
-    successful_downloads = 0
-    failed_downloads = 0
-    already_downloaded = 0
+    counters = {'successful': 0, 'already_downloaded': 0}
 
     # Process the rows
-    for row in tqdm(rows, desc="Downloading files"):
-        # Get the URLs
-        urls = [row['Pdf_URL'], row['Report Html Address']]
-        for url in urls:
-            try:
-                # Generate a unique filename
-                filename = f'{url.split("/")[-1]}'
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks to the executor
+        futures = {executor.submit(download_file, url, folder): url for row in tqdm(rows, desc="Processing files", total=nrows) for url in [row['Pdf_URL'], row['Report Html Address']]}
 
-                # Check if the file already exists
-                if os.path.exists(f'{folder}/{filename}'):
-                    if filename.lower().endswith('.pdf'):
-                        already_downloaded += 1
-                    break
+        # Wait for tasks to complete and update counters
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Downloading files"):
+            result = future.result()
+            if result in counters:
+                counters[result] += 1
 
-                # Check if the file is a .pdf
-                if not filename.lower().endswith('.pdf'):
-                    failed_downloads += 1
-                    continue
+    # Calculate the number of failed downloads
+    counters['failed'] = nrows - counters['successful'] - counters['already_downloaded']
 
-                # Open the URL and read the first few bytes
-                with urllib.request.urlopen(url, timeout=10) as u:
-                    if not u.read(5).startswith(b'%PDF-'):
-                        failed_downloads += 1
-                        continue
-
-                # Download the file
-                urllib.request.urlretrieve(url, f'{folder}/{filename}')
-                successful_downloads += 1
-                break  # If the download was successful, break the loop and don't try the backup URL
-            except (socket.timeout, Exception) as e:
-                failed_downloads += 1
-                continue  # If an error occurred, continue the loop and try the backup URL
-
-    return successful_downloads, failed_downloads, already_downloaded
+    return counters['successful'], counters['failed'], counters['already_downloaded']
 
 def main():
+    start = 0
+    nrows = 20
     print("Loading rows")
-    rows = load_data(file='GRI_2017_2020.xlsx', start=0, nrows=20)
-    successful_downloads, failed_downloads, already_downloaded = download_files(rows, folder='pdf-files')
+    rows = load_data(file='GRI_2017_2020.xlsx', start=start, nrows=nrows)
+    successful_downloads, failed_downloads, already_downloaded = download_files(rows, nrows, folder='pdf-files')
     print(f"Successfully downloaded: {successful_downloads}")
     print(f"Already downloaded: {already_downloaded}")
     print(f"Failed to download: {failed_downloads}")
