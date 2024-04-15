@@ -6,8 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Custom
 db_info.json
 jwt_info.json
+pdf-files/
 
 # Distribution / packaging
 .Python
