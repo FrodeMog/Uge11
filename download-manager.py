@@ -22,6 +22,11 @@ def download_files(df):
             # Get the filename
             filename = pdf_url.split('/')[-1]
 
+            # Check if the file already exists
+            if os.path.exists(f'pdf-files/{filename}'):
+                print(f'{filename} already exists')
+                continue
+
             # Download the file
             response = requests.get(pdf_url)
 
