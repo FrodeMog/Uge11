@@ -9,3 +9,5 @@ Werkzeug==3.0.2
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.9
 python-jose[cryptography]==3.3.0
+requests==2.31.0
+openpyxl==3.1.2
