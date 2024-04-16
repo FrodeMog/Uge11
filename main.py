@@ -145,6 +145,7 @@ async def create_admin_user(user: UserAdmin, current_user: User = Depends(get_cu
         raise HTTPException(status_code=500, detail=str(e))
 
 db_utils = DatabaseUtils()
+db_utils.reset_and_setup_db()
 db_utils.setup_db()
 
 if __name__ == "__main__":
