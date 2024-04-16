@@ -43,6 +43,7 @@ origins = [
     "http://localhost:3000",  # React's default port
 ]
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -51,13 +52,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail},
-    )
-
 async def get_db():
     db_connect = await DatabaseConnect.connect_from_config()
     session = await db_connect.get_new_session()
@@ -65,6 +59,13 @@ async def get_db():
         yield session
     finally:
         await db_connect.close()
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_db)):
@@ -111,16 +112,37 @@ async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSe
     return user
 
 async def get_current_admin_user(current_user: User = Depends(get_current_user)):
-    if not current_user.is_admin:
+    if not current_user.is_admin == "True":
         raise HTTPException(status_code=403, detail="User is not an admin")
     return current_user
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail},
-    )
+@app.post("/users/create", response_model=UserResposne)
+async def create_user(user: UserBase, session: AsyncSession = Depends(get_db)):
+    existing_user = await User.check_if_exists(session, field="username", value=user.username)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    existing_user = await User.check_if_exists(session, field="email", value=user.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    try:
+        result = await User.create_user(session=session, **user.dict())
+        return UserResposne.from_orm(result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/users/create/admin", response_model=UserAdminResponse)
+async def create_admin_user(user: UserAdmin, current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
+    existing_user = await User.check_if_exists(session, field="username", value=user.username)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    existing_user = await User.check_if_exists(session, field="email", value=user.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    try:
+        result = await User.create_user(session=session, **user.dict())
+        return UserAdminResponse.from_orm(result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 db_utils = DatabaseUtils()
 db_utils.setup_db()
