@@ -12,7 +12,12 @@ from sqlalchemy.orm import sessionmaker
 socket.setdefaulttimeout(5)
 
 class DownloadManager:
-    def __init__(self):
+    def __init__(self, folder='pdf-files'):
+        # Create a folder to store the downloaded files
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        self.folder = folder
+
         # Load database information from db_info.json
         with open('db_info.json') as f:
             db_info = json.load(f)
@@ -43,13 +48,13 @@ class DownloadManager:
             # Yield the row as a dictionary
             yield dict(zip(headers, (cell.value for cell in row)))
 
-    def download_file(self, url, folder):
+    def download_file(self, url):
         try:
             # Generate a unique filename
             filename = f'{url.split("/")[-1]}'
 
             # Check if the file already exists
-            if os.path.exists(f'{folder}/{filename}'):
+            if os.path.exists(f'{self.folder}/{filename}'):
                 if filename.lower().endswith('.pdf'):
                     return 'already_downloaded'
 
@@ -63,19 +68,15 @@ class DownloadManager:
                     return 'failed'
 
             # Download the file
-            urllib.request.urlretrieve(url, f'{folder}/{filename}')
+            urllib.request.urlretrieve(url, f'{self.folder}/{filename}')
             return 'successful'
         except (socket.timeout, Exception) as e:
             return 'failed'
 
-    def download_files(self, rows, nrows, folder='pdf-files', max_workers=None):
+    def download_files(self, rows, nrows, max_workers=None):
         if max_workers is None:
             max_workers = os.cpu_count() or 1
-        print(f"Attempting to download {nrows} files to {folder} using {max_workers} workers")
-
-        # Create a folder to store the downloaded files
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        print(f"Attempting to download {nrows} files to {self.folder} using {max_workers} workers")
 
         # Initialize counters
         counters = {'successful': 0, 'already_downloaded': 0}
@@ -83,7 +84,7 @@ class DownloadManager:
         # Process the rows
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all tasks to the executor
-            futures = {executor.submit(self.download_file, url, folder): url for row in tqdm(rows, desc="Processing data", total=nrows) for url in [row['Pdf_URL'], row['Report Html Address']]}
+            futures = {executor.submit(self.download_file, url): url for row in tqdm(rows, desc="Processing data", total=nrows) for url in [row['Pdf_URL'], row['Report Html Address']]}
 
             # Wait for tasks to complete and update counters
             for future in tqdm(as_completed(futures), total=len(futures), desc="Downloading files"):
@@ -97,11 +98,11 @@ class DownloadManager:
         return counters['successful'], counters['failed'], counters['already_downloaded']
 
 def main():
-    dm = DownloadManager()
+    dm = DownloadManager(folder='pdf-files')
     start = 10000
     nrows = 100
     rows = dm.load_data(file='GRI_2017_2020.xlsx', start=start, nrows=nrows)
-    successful_downloads, failed_downloads, already_downloaded = dm.download_files(rows, nrows, folder='pdf-files')
+    successful_downloads, failed_downloads, already_downloaded = dm.download_files(rows, nrows)
     print(f"Successfully downloaded: {successful_downloads}")
     print(f"Already downloaded: {already_downloaded}")
     print(f"Failed to download: {failed_downloads}")
