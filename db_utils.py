@@ -25,6 +25,15 @@ class DatabaseUtils:
         self.SessionLocal = SessionLocal
         self.create_schema()
 
+    def extract_table_as_csv(self, table_name, file_name):
+        db = self.SessionLocal()
+        query = db.query(table_name)
+        with open(file_name, 'w') as f:
+            f.write(','.join([column.name for column in table_name.__table__.columns]) + '\n')
+            for row in query:
+                f.write(','.join([str(getattr(row, column.name)) for column in table_name.__table__.columns]) + '\n')
+        db.close()
+
     def reset_and_setup_db(self):
         self.drop_tables()
         self.create_tables()

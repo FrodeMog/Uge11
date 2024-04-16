@@ -145,8 +145,10 @@ async def create_admin_user(user: UserAdmin, current_user: User = Depends(get_cu
         raise HTTPException(status_code=500, detail=str(e))
 
 db_utils = DatabaseUtils()
-db_utils.reset_and_setup_db()
+#db_utils.reset_and_setup_db()
 db_utils.setup_db()
+#db_utils.extract_table_as_csv(User, "users.csv")
+#db_utils.extract_table_as_csv(GRIPdf, "gri_pdfs.csv")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)
