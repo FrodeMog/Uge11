@@ -92,7 +92,6 @@ class BaseModel(Base):
         else:
             return await cls.add(session, **kwargs)
         
-
 class GRIPdf(BaseModel):
     __tablename__ = 'GRIPdfs'
 
@@ -113,7 +112,6 @@ class GRIPdf(BaseModel):
     pdf_backup_url = Column(Text, nullable=False)
 
         
-
 class User(BaseModel):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
