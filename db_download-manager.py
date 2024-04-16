@@ -70,7 +70,7 @@ class DownloadManager:
             
     def download_file(self, row, url_header):
         url = row[url_header]
-        BRnumber = row['BRnum']
+        brnumber = row['BRnum']
         try:
             # Generate a unique filename
             filename = f'{url.split("/")[-1]}'
@@ -88,12 +88,12 @@ class DownloadManager:
 
             # Start a new SQLAlchemy session
             with self.SessionLocal() as session:
-                # Query the database for a record with the specified BRnumber and download_status='TRUE'
-                pdf = session.query(GRIPdf).filter_by(BRnumber=BRnumber, download_status='TRUE').first()
+                # Query the database for a record with the specified brnumber and download_status='TRUE'
+                pdf = session.query(GRIPdf).filter_by(brnumber=brnumber, download_status='TRUE').first()
 
                 # If such a record exists, return 'already_downloaded'
                 if pdf is not None:
-                    self.save_download_result(row, filename, download_status='TRUE', file_folder=pdf.file_folder, download_message=f'Download_status for {BRnumber} was already TRUE, should be found in folder: {pdf.file_folder}, wont attempt download to folder: {self.folder}')
+                    self.save_download_result(row, filename, download_status='TRUE', file_folder=pdf.file_folder, download_message=f'Download_status for {brnumber} was already TRUE, should be found in folder: {pdf.file_folder}, wont attempt download to folder: {self.folder}')
                     return 'already_downloaded'
 
             # Open the URL and read the first few bytes
