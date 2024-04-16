@@ -74,15 +74,10 @@ class DownloadManager:
                     self.save_download_result(row, filename, download_status='TRUE', download_message='File already exists')
                     return 'already_downloaded'
     
-            # Check if the file is a .pdf
-            if not filename.lower().endswith('.pdf'):
-                self.save_download_result(row, filename, download_status='FALSE', download_message='Not a PDF file')
-                return 'failed'
-    
             # Open the URL and read the first few bytes
             with urllib.request.urlopen(url, timeout=10) as u:
                 if not u.read(5).startswith(b'%PDF-'):
-                    self.save_download_result(row, filename, download_status='FALSE', download_message='Not a PDF file')
+                    self.save_download_result(row, filename, download_status='FALSE', download_message='Not received as PDF file')
                     return 'failed'
     
             # Download the file
@@ -135,7 +130,7 @@ class DownloadManager:
 
 def main():
     dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
-    dm.start_download(start_row=1500, nrows=50)
+    dm.start_download(start_row=0, nrows=50)
 
 if __name__ == '__main__':
     main()
