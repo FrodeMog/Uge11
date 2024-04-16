@@ -58,8 +58,8 @@ Day 2|  | 6h | Up to 2h extra
 ✅| API: Setup basic FastAPI connection | 30m | Day 2
 ✅| Tests: unit-tests / manual-tests for todays work | 1h | Day 2
 Day 3|  | 6h | Up to 2h extra
-⬜| API: GET for local pdf-references with search and range limit | 1h | Day 3
-⬜| API: GET for remote pdf-file download with search and range limit | 1h | Day 3
+✅| API: GET for local pdf-references with search and range limit | 1h | Day 3
+✅| API: GET for remote pdf-file download with search and range limit | 1h | Day 3
 ⬜| API: POST to run download manager with limiter options | 2h | Day 3
 ✅| API: AUTH of user and admin | 2h | Day 3
 Day 4|  | 6h | Up to 2h extra

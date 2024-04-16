@@ -183,6 +183,32 @@ async def get_pdf_by_field_value(field: str, value: str, session: AsyncSession =
         return result
     else:
         raise HTTPException(status_code=404, detail="PDF not found")
+    
+@app.get("/pdfs/brnumber/{brnumber}/pdf_file")
+async def get_pdf_file(brnumber: str, response_type: str = "download", user = Depends(get_current_user), session: AsyncSession = Depends(get_db)):
+    result = await GRIPdf.get_by_brnumber(session, brnumber)
+    if result:
+        if response_type == "local":
+            file_path = f"{result.file_folder}/{result.file_name}"
+            return f"file://{file_path}"
+        elif response_type == "link":
+            return {"pdf_url": result.pdf_url, "pdf_backup_url": result.pdf_backup_url}
+        elif response_type == "download":
+            if not result.file_name:
+                raise HTTPException(status_code=404, detail="PDF file not found")
+            if not os.path.exists(f"{result.file_folder}/{result.file_name}"):
+                raise HTTPException(status_code=404, detail="PDF file not found")
+            if not result.download_status == "TRUE":
+                raise HTTPException(status_code=404, detail="PDF file not downloaded")
+            return FileResponse(
+                path=f"{result.file_folder}/{result.file_name}",
+                media_type='application/pdf',
+                headers={"Content-Disposition": f"attachment; filename={result.file_name}"}
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Invalid response_type")
+    else:
+        raise HTTPException(status_code=404, detail="brnumber not found")
 
 
 db_utils = DatabaseUtils()
