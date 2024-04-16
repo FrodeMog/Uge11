@@ -31,11 +31,11 @@ Extras:
 
 ##### Featurelist
 Status | Feature |
-:---:| --- |
-⬜| Pdf download manager
-⬜| Updating of `Metadata2006-2016.xlsx`
-⬜| Database of `BRNummer` pdf-files with .csv file extract
-⬜| Specified folder-path storage of pdf-files
+:---:| --- | Comment
+✅| Pdf download manager
+⚠️| ~~Updating of `Metadata2006-2016.xlsx`~~ | No longer needed
+✅| Database of `BRNummer` pdf-files with .csv file extract
+✅| Specified folder-path storage of pdf-files
 Extras:
 ⬜| FastAPI in front-end: Login Page for remote access of files
 ⬜| FastAPI in front-end: Admin operation to run the download manager
@@ -56,7 +56,7 @@ Day 2|  | 6h | Up to 2h extra
 ✅| Database: Setup tables and columns | 30m | Day 2
 ✅| Download manager: Update ~~metadata and~~ database status of downloaded files | 1h | Day 2
 ✅| API: Setup basic FastAPI connection | 30m | Day 2
-⬜| Tests: unit-tests / manual-tests for todays work | 1h | Day 2
+✅| Tests: unit-tests / manual-tests for todays work | 1h | Day 2
 Day 3|  | 6h | Up to 2h extra
 ⬜| API: GET for local pdf-references with search and range limit | 1h | Day 3
 ⬜| API: GET for remote pdf-file download with search and range limit | 1h | Day 3
