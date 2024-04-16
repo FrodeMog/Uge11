@@ -51,6 +51,7 @@ def download_file(url, folder):
 def download_files(rows, nrows, folder='pdf-files', max_workers=None):
     if max_workers is None:
         max_workers = os.cpu_count() or 1
+    print(f"Attempting to download {nrows} files to {folder} using {max_workers} workers")
 
     # Create a folder to store the downloaded files
     if not os.path.exists(folder):
