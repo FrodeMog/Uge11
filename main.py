@@ -8,6 +8,8 @@ from db_pydantic_classes import *
 from db_classes import *
 from db_connect import DatabaseConnect
 from db_utils import DatabaseUtils
+from db_download_manager import DownloadManager
+
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -185,7 +187,7 @@ async def get_pdf_by_field_value(field: str, value: str, session: AsyncSession =
         raise HTTPException(status_code=404, detail="PDF not found")
     
 @app.get("/pdfs/brnumber/{brnumber}/pdf_file")
-async def get_pdf_file(brnumber: str, response_type: str = "download", user = Depends(get_current_user), session: AsyncSession = Depends(get_db)):
+async def get_pdf_file(brnumber: str, response_type: str = "download", current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_db)):
     result = await GRIPdf.get_by_brnumber(session, brnumber)
     if result:
         if response_type == "local":
@@ -209,6 +211,17 @@ async def get_pdf_file(brnumber: str, response_type: str = "download", user = De
             raise HTTPException(status_code=400, detail="Invalid response_type")
     else:
         raise HTTPException(status_code=404, detail="brnumber not found")
+    
+@app.post("/start_download/{start_row}/{num_rows}")
+def start_download(start_row: int, num_rows: int, current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
+    if not current_user.is_admin == "True":
+        raise HTTPException(status_code=403, detail="User is not an admin")
+    try:
+        db_dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
+        results = db_dm.start_download(start_row=start_row, nrows=num_rows)
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 db_utils = DatabaseUtils()
