@@ -111,7 +111,7 @@ class GRIPdf(BaseModel):
     __tablename__ = 'GRIPdfs'
 
     id = Column(Integer, primary_key=True)
-    BRnumber = Column(String(50), nullable=False)
+    BRnumber = Column(String(50), nullable=False, unique=True)
     title = Column(Text, nullable=False)
     file_name = Column(Text, nullable=False)
     publication_year = Column(Text, nullable=False)
@@ -126,6 +126,15 @@ class GRIPdf(BaseModel):
 
     pdf_url = Column(Text, nullable=False)
     pdf_backup_url = Column(Text, nullable=False)
+
+    @classmethod
+    @error_handler
+    async def create_pdf(cls, session, BRnumber, title, file_name, publication_year, organization_name, organization_type, organization_sector, country, region, pdf_url, pdf_backup_url):
+        pdf = cls(BRnumber=BRnumber, title=title, file_name=file_name, publication_year=publication_year, organization_name=organization_name, organization_type=organization_type, organization_sector=organization_sector, country=country, region=region, pdf_url=pdf_url, pdf_backup_url=pdf_backup_url, download_status="pending")
+        session.add(pdf)
+        await session.commit()
+        await session.refresh(pdf)
+        return pdf
 
         
 class User(BaseModel):
