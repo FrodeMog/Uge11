@@ -42,12 +42,11 @@ class BaseModel(Base):
         return str({column.name: getattr(self, column.name) for column in self.__table__.columns if hasattr(self, column.name)})
     
     @classmethod
-    @error_handler
-    async def get(cls, session, id):
-        row = (await session.execute(select(cls).where(cls.id == id))).scalar_one_or_none()
-        if row is None:
-            raise HTTPException(status_code=404, detail=f"No {cls.__name__} found with id {id}")
-        return row
+    # Dont user error_handler decorator here
+    async def check_if_exists(cls, session, field, value):
+        query = select(cls).where(getattr(cls, field) == value)
+        result = await session.execute(query)
+        return result.scalars().first()
 
     @classmethod
     @error_handler
@@ -91,6 +90,22 @@ class BaseModel(Base):
             return await cls.update(session, id, **kwargs)
         else:
             return await cls.add(session, **kwargs)
+    
+    @classmethod
+    @error_handler
+    async def get_by_id(cls, session, id):
+        result = (await session.execute(select(cls).where(cls.id == id))).scalar_one_or_none()
+        if result is None:
+            raise HTTPException(status_code=404, detail=f"No {cls.__name__} found with id {id}")
+        return result
+
+    @classmethod
+    @error_handler
+    async def get_all(cls, session):
+        result = (await session.execute(select(cls))).scalars().all()
+        if not result:
+            raise HTTPException(status_code=404, detail=f"No {cls.__name__} found")
+        return result
         
 class GRIPdf(BaseModel):
     __tablename__ = 'GRIPdfs'
@@ -118,7 +133,7 @@ class User(BaseModel):
     username = Column(String(50), unique=True, nullable=False)
     email = Column(String(50), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
-    is_admin = Column(Boolean, default=False)
+    is_admin = Column(String(10), default="False")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
@@ -138,11 +153,16 @@ class User(BaseModel):
         return email
     
     @classmethod
-    def create_user(cls, username, password, email, is_admin=False):
+    @error_handler
+    async def create_user(cls, session, username, password, email, is_admin="False"):
         user = cls(username=username, password=generate_password_hash(password), email=email, is_admin=is_admin)
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
         return user
     
     @classmethod
+    @error_handler
     async def authenticate(cls, username: str, password: str, session: AsyncSession):
         user = await session.execute(select(cls).where(cls.username == username))
         user = user.scalars().first()
