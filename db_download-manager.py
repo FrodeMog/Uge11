@@ -8,6 +8,7 @@ import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db_classes import GRIPdf
+from pathlib import Path
 
 # Set a default timeout for all socket operations
 socket.setdefaulttimeout(5)
@@ -17,7 +18,7 @@ class DownloadManager:
         # Create a folder to store the downloaded files
         if not os.path.exists(folder):
             os.makedirs(folder)
-        self.folder = folder
+        self.folder = Path(__file__).parent / folder
         self.file_with_urls = file_with_urls
 
         # Load database information from db_info.json
