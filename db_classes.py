@@ -169,20 +169,20 @@ class GRIPdf(BaseModel):
             if pdf:
                 # If such a record exists, get its id
                 id = pdf.id
-                return cls.update(session, id, **kwargs)
+                return cls.update(session, BRnumber, **kwargs)
         # If no such record exists, insert a new one
         kwargs['BRnumber'] = BRnumber
         return cls.add(session, **kwargs)
     
     @classmethod
     @error_handler_sync
-    def update(cls, session, id, **kwargs):
-        pdf = session.query(cls).filter_by(BRnumber=id).first()
+    def update(cls, session, BRnumber, **kwargs):
+        pdf = session.query(cls).filter_by(BRnumber=BRnumber).first()
         if pdf is not None:
             for key, value in kwargs.items():
                 setattr(pdf, key, value)
             session.commit()
-        return pdf
+            return pdf
 
     @classmethod
     @error_handler_sync
