@@ -54,7 +54,7 @@ Day 2|  | 6h | Up to 2h extra
 ✅| Database: Setup ORMs | 1h | Day 2
 ✅| Database: Setup connection | 1h | Day 2
 ✅| Database: Setup tables and columns | 30m | Day 2
-⬜| Download manager: Update metadata and database status of downloaded files | 1h | Day 2
+✅| Download manager: Update ~~metadata and~~ database status of downloaded files | 1h | Day 2
 ✅| API: Setup basic FastAPI connection | 30m | Day 2
 ⬜| Tests: unit-tests / manual-tests for todays work | 1h | Day 2
 Day 3|  | 6h | Up to 2h extra

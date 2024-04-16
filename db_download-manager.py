@@ -7,6 +7,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from db_classes import GRIPdf
+from datetime import datetime
+from threading import Lock
 
 # Set a default timeout for all socket operations
 socket.setdefaulttimeout(5)
@@ -49,54 +52,91 @@ class DownloadManager:
             # Yield the row as a dictionary
             yield dict(zip(headers, (cell.value for cell in row)))
 
-    def download_file(self, url):
+    def save_download_result(self, row, file_name, download_status, download_message=None):
+        # Start a new SQLAlchemy session
+        with self.SessionLocal() as session:
+            # Use the create_pdf_sync method to create a new GRIPdf object
+            GRIPdf.process_row(
+                session=session,
+                row=row,
+                file_name=file_name,
+                download_status=download_status,
+                download_message=download_message,
+            )
+            
+    def download_file(self, row, url_header):
+        url = row[url_header]
         try:
             # Generate a unique filename
             filename = f'{url.split("/")[-1]}'
-
+    
             # Check if the file already exists
             if os.path.exists(f'{self.folder}/{filename}'):
                 if filename.lower().endswith('.pdf'):
+                    self.save_download_result(row, filename, download_status='TRUE', download_message='File already exists')
                     return 'already_downloaded'
-
+    
             # Check if the file is a .pdf
             if not filename.lower().endswith('.pdf'):
+                self.save_download_result(row, filename, download_status='FALSE', download_message='Not a PDF file')
                 return 'failed'
-
+    
             # Open the URL and read the first few bytes
             with urllib.request.urlopen(url, timeout=10) as u:
                 if not u.read(5).startswith(b'%PDF-'):
+                    self.save_download_result(row, filename, download_status='FALSE', download_message='Not a PDF file')
                     return 'failed'
-
+    
             # Download the file
             urllib.request.urlretrieve(url, f'{self.folder}/{filename}')
+            self.save_download_result(row, filename, download_status='TRUE', download_message='File downloaded successfully')
             return 'successful'
         except (socket.timeout, Exception) as e:
+            self.save_download_result(row, filename, download_status='FALSE', download_message=str(e))
             return 'failed'
 
     def download_files(self, rows, nrows, max_workers=None):
         if max_workers is None:
             max_workers = os.cpu_count() or 1
         print(f"Attempting to download {nrows} files to {self.folder} using {max_workers} workers")
-
+    
         # Initialize counters
         counters = {'successful': 0, 'already_downloaded': 0}
-
+    
+        # Create a dictionary of Lock objects
+        locks = {}
+        
         # Process the rows
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all tasks to the executor
-            futures = {executor.submit(self.download_file, url): url for row in tqdm(rows, desc="Processing data", total=nrows) for url in [row['Pdf_URL'], row['Report Html Address']]}
-
+            futures = {}
+            for row in tqdm(rows, desc="Processing data", total=nrows):
+                # Get the lock for the row's BRnum
+                lock = locks.setdefault(row['BRnum'], Lock())
+                
+                # Acquire the lock before submitting the task to the executor
+                lock.acquire()
+                future = executor.submit(self.download_file, row, 'Pdf_URL')
+                futures[future] = (row, 'Pdf_URL', lock)
+        
             # Wait for tasks to complete and update counters
             for future in tqdm(as_completed(futures), total=len(futures), desc="Downloading files"):
                 result = future.result()
                 if result in counters:
                     counters[result] += 1
+        
+                row, url_header, lock = futures[future]
+                if result == 'failed' and url_header == 'Pdf_URL':
+                    # If the Pdf_URL download task failed, submit the Report Html Address download task to the executor
+                    future = executor.submit(self.download_file, row, 'Report Html Address')
+                    futures[future] = (row, 'Report Html Address', lock)
+                else:
+                    # Release the lock when the worker finishes processing the row
+                    lock.release()
 
-        # Calculate the number of failed downloads
-        counters['failed'] = nrows - counters['successful'] - counters['already_downloaded']
+            # Calculate the number of failed downloads
+            counters['failed'] = nrows - counters['successful'] - counters['already_downloaded']
 
-        return counters['successful'], counters['failed'], counters['already_downloaded']
+            return counters['successful'], counters['failed'], counters['already_downloaded']
 
     def start_download(self, start_row, nrows):
         rows = self.load_data(start=start_row, nrows=nrows)
@@ -107,7 +147,7 @@ class DownloadManager:
 
 def main():
     dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
-    dm.start_download(start_row=10000, nrows=100)
+    dm.start_download(start_row=500, nrows=20)
 
 if __name__ == '__main__':
     main()

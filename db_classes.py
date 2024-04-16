@@ -25,6 +25,15 @@ def error_handler(func):
             raise HTTPException(status_code=500, detail=str(e))
     return wrapper
 
+def error_handler_sync(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
+    return wrapper
+
 Base = declarative_base()
 
 class BaseModel(Base):
@@ -112,30 +121,76 @@ class GRIPdf(BaseModel):
 
     id = Column(Integer, primary_key=True)
     BRnumber = Column(String(50), nullable=False, unique=True)
-    title = Column(Text, nullable=False)
+    title = Column(Text, nullable=True)
     file_name = Column(Text, nullable=False)
-    publication_year = Column(Text, nullable=False)
-    organization_name = Column(Text, nullable=False)
-    organization_type = Column(Text, nullable=False)
-    organization_sector = Column(Text, nullable=False)
-    country = Column(Text, nullable=False)
-    region = Column(Text, nullable=False)
+    publication_year = Column(Text, nullable=True)
+    organization_name = Column(Text, nullable=True)
+    organization_type = Column(Text, nullable=True)
+    organization_sector = Column(Text, nullable=True)
+    country = Column(Text, nullable=True)
+    region = Column(Text, nullable=True)
 
     download_status = Column(Text, nullable=False)
-    date_downloaded = Column(DateTime, default=datetime.now)
+    download_message = Column(Text, nullable=False)
+    download_attempt_date = Column(DateTime, default=datetime.now)
 
-    pdf_url = Column(Text, nullable=False)
-    pdf_backup_url = Column(Text, nullable=False)
-
+    pdf_url = Column(Text, nullable=True)
+    pdf_backup_url = Column(Text, nullable=True)
+    
     @classmethod
-    @error_handler
-    async def create_pdf(cls, session, BRnumber, title, file_name, publication_year, organization_name, organization_type, organization_sector, country, region, pdf_url, pdf_backup_url):
-        pdf = cls(BRnumber=BRnumber, title=title, file_name=file_name, publication_year=publication_year, organization_name=organization_name, organization_type=organization_type, organization_sector=organization_sector, country=country, region=region, pdf_url=pdf_url, pdf_backup_url=pdf_backup_url, download_status="pending")
-        session.add(pdf)
-        await session.commit()
-        await session.refresh(pdf)
+    @error_handler_sync
+    def process_row(cls, session, row, file_name, download_status, download_message=None):
+        data = {
+            'BRnumber': row['BRnum'],
+            'title': row['Title'],
+            'file_name': file_name,
+            'publication_year': row['Publication Year'],
+            'organization_name': row['Name'],
+            'organization_type': row['Organization type'],
+            'organization_sector': row['Sector'],
+            'country': row['Country'],
+            'region': row['Region'],
+            'pdf_url': row['Pdf_URL'],
+            'pdf_backup_url': row['Report Html Address'],
+            'download_status': download_status,
+            'download_message': download_message,
+            'download_attempt_date': datetime.now(),
+        }
+    
+        pdf = cls.upsert(session, **data)
+        return pdf
+    
+    @classmethod
+    @error_handler_sync
+    def upsert(cls, session, BRnumber=None, **kwargs):
+        if BRnumber:
+            # Query the database for a record with the specified BRnumber
+            pdf = session.query(cls).filter_by(BRnumber=BRnumber).first()
+            if pdf:
+                # If such a record exists, get its id
+                id = pdf.id
+                return cls.update(session, id, **kwargs)
+        # If no such record exists, insert a new one
+        kwargs['BRnumber'] = BRnumber
+        return cls.add(session, **kwargs)
+    
+    @classmethod
+    @error_handler_sync
+    def update(cls, session, id, **kwargs):
+        pdf = session.query(cls).filter_by(BRnumber=id).first()
+        if pdf is not None:
+            for key, value in kwargs.items():
+                setattr(pdf, key, value)
+            session.commit()
         return pdf
 
+    @classmethod
+    @error_handler_sync
+    def add(cls, session, **kwargs):
+        pdf = cls(**kwargs)
+        session.add(pdf)
+        session.commit()
+        return pdf
         
 class User(BaseModel):
     __tablename__ = 'users'
