@@ -25,13 +25,13 @@ Status | Technologies |
 ✅| Python
 ✅| MySQL 
 Extras:
-⬜| FastAPI
-⬜| SQLAlchemy
+✅| FastAPI
+✅| SQLAlchemy
 ⬜| React 
 
 ##### Featurelist
-Status | Feature |
-:---:| --- | Comment
+Status | Feature | Comment
+:---:| --- | --- 
 ✅| Pdf download manager
 ⚠️| ~~Updating of `Metadata2006-2016.xlsx`~~ | No longer needed
 ✅| Database of `BRNummer` pdf-files with .csv file extract
@@ -61,7 +61,7 @@ Day 3|  | 6h | Up to 2h extra
 ⬜| API: GET for local pdf-references with search and range limit | 1h | Day 3
 ⬜| API: GET for remote pdf-file download with search and range limit | 1h | Day 3
 ⬜| API: POST to run download manager with limiter options | 2h | Day 3
-⬜| API: AUTH of user and admin | 2h | Day 3
+✅| API: AUTH of user and admin | 2h | Day 3
 Day 4|  | 6h | Up to 2h extra
 ⬜| Front-end: Basic structure | 1h | Day 4
 ⬜| Front-end: Login page | 1h | Day 4
