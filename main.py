@@ -220,7 +220,7 @@ async def get_pdf_file(brnumber: str, response_type: str = "download", current_u
         raise HTTPException(status_code=404, detail="brnumber not found")
 
 executor = ThreadPoolExecutor(max_workers = os.cpu_count() or 1)
-async def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: str, session: AsyncSession):
+async def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: str, session: AsyncSession = Depends(get_db)):
     loop = asyncio.get_event_loop()
     results = await loop.run_in_executor(executor, lambda: dm.start_download(start_row, num_rows))
     results_json = json.dumps(results)
