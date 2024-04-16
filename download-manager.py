@@ -1,6 +1,4 @@
 import os
-import pandas as pd
-import requests
 from tqdm import tqdm
 import urllib.request
 import socket
@@ -50,7 +48,10 @@ def download_file(url, folder):
     except (socket.timeout, Exception) as e:
         return 'failed'
 
-def download_files(rows, nrows, folder='pdf-files', max_workers=5):
+def download_files(rows, nrows, folder='pdf-files', max_workers=None):
+    if max_workers is None:
+        max_workers = os.cpu_count() or 1
+
     # Create a folder to store the downloaded files
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -61,7 +62,7 @@ def download_files(rows, nrows, folder='pdf-files', max_workers=5):
     # Process the rows
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all tasks to the executor
-        futures = {executor.submit(download_file, url, folder): url for row in tqdm(rows, desc="Processing files", total=nrows) for url in [row['Pdf_URL'], row['Report Html Address']]}
+        futures = {executor.submit(download_file, url, folder): url for row in tqdm(rows, desc="Processing data", total=nrows) for url in [row['Pdf_URL'], row['Report Html Address']]}
 
         # Wait for tasks to complete and update counters
         for future in tqdm(as_completed(futures), total=len(futures), desc="Downloading files"):
@@ -75,9 +76,8 @@ def download_files(rows, nrows, folder='pdf-files', max_workers=5):
     return counters['successful'], counters['failed'], counters['already_downloaded']
 
 def main():
-    start = 0
-    nrows = 20
-    print("Loading rows")
+    start = 10000
+    nrows = 100
     rows = load_data(file='GRI_2017_2020.xlsx', start=start, nrows=nrows)
     successful_downloads, failed_downloads, already_downloaded = download_files(rows, nrows, folder='pdf-files')
     print(f"Successfully downloaded: {successful_downloads}")
