@@ -12,11 +12,12 @@ from sqlalchemy.orm import sessionmaker
 socket.setdefaulttimeout(5)
 
 class DownloadManager:
-    def __init__(self, folder='pdf-files'):
+    def __init__(self, folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx'):
         # Create a folder to store the downloaded files
         if not os.path.exists(folder):
             os.makedirs(folder)
         self.folder = folder
+        self.file_with_urls = file_with_urls
 
         # Load database information from db_info.json
         with open('db_info.json') as f:
@@ -33,9 +34,9 @@ class DownloadManager:
         self.engine = engine
         self.SessionLocal = SessionLocal
 
-    def load_data(self, file, start=0, nrows=None):
+    def load_data(self, start=0, nrows=None):
         # Load the workbook
-        workbook = load_workbook(filename=file, read_only=True)
+        workbook = load_workbook(filename=self.file_with_urls, read_only=True)
 
         # Get the first worksheet
         worksheet = workbook.active
@@ -97,15 +98,16 @@ class DownloadManager:
 
         return counters['successful'], counters['failed'], counters['already_downloaded']
 
+    def start_download(self, start_row, nrows):
+        rows = self.load_data(start=start_row, nrows=nrows)
+        successful_downloads, failed_downloads, already_downloaded = self.download_files(rows, nrows)
+        print(f"Successfully downloaded: {successful_downloads}")
+        print(f"Already downloaded: {already_downloaded}")
+        print(f"Failed to download: {failed_downloads}")
+
 def main():
-    dm = DownloadManager(folder='pdf-files')
-    start = 10000
-    nrows = 100
-    rows = dm.load_data(file='GRI_2017_2020.xlsx', start=start, nrows=nrows)
-    successful_downloads, failed_downloads, already_downloaded = dm.download_files(rows, nrows)
-    print(f"Successfully downloaded: {successful_downloads}")
-    print(f"Already downloaded: {already_downloaded}")
-    print(f"Failed to download: {failed_downloads}")
+    dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
+    dm.start_download(start_row=10000, nrows=100)
 
 if __name__ == '__main__':
     main()
