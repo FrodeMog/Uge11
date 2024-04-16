@@ -8,8 +8,6 @@ import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db_classes import GRIPdf
-from datetime import datetime
-from threading import Lock
 
 # Set a default timeout for all socket operations
 socket.setdefaulttimeout(5)
@@ -103,40 +101,30 @@ class DownloadManager:
         # Initialize counters
         counters = {'successful': 0, 'already_downloaded': 0}
     
-        # Create a dictionary of Lock objects
-        locks = {}
-        
         # Process the rows
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {}
             for row in tqdm(rows, desc="Processing data", total=nrows):
-                # Get the lock for the row's BRnum
-                lock = locks.setdefault(row['BRnum'], Lock())
-                
-                # Acquire the lock before submitting the task to the executor
-                lock.acquire()
+                # Submit the Pdf_URL download task to the executor
                 future = executor.submit(self.download_file, row, 'Pdf_URL')
-                futures[future] = (row, 'Pdf_URL', lock)
-        
+                futures[future] = (row, 'Pdf_URL')
+
             # Wait for tasks to complete and update counters
             for future in tqdm(as_completed(futures), total=len(futures), desc="Downloading files"):
                 result = future.result()
                 if result in counters:
                     counters[result] += 1
-        
-                row, url_header, lock = futures[future]
+
+                row, url_header = futures[future]
                 if result == 'failed' and url_header == 'Pdf_URL':
                     # If the Pdf_URL download task failed, submit the Report Html Address download task to the executor
                     future = executor.submit(self.download_file, row, 'Report Html Address')
-                    futures[future] = (row, 'Report Html Address', lock)
-                else:
-                    # Release the lock when the worker finishes processing the row
-                    lock.release()
+                    futures[future] = (row, 'Report Html Address')
 
-            # Calculate the number of failed downloads
-            counters['failed'] = nrows - counters['successful'] - counters['already_downloaded']
+        # Calculate the number of failed downloads
+        counters['failed'] = nrows - counters['successful'] - counters['already_downloaded']
 
-            return counters['successful'], counters['failed'], counters['already_downloaded']
+        return counters['successful'], counters['failed'], counters['already_downloaded']
 
     def start_download(self, start_row, nrows):
         rows = self.load_data(start=start_row, nrows=nrows)
@@ -147,7 +135,7 @@ class DownloadManager:
 
 def main():
     dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
-    dm.start_download(start_row=500, nrows=20)
+    dm.start_download(start_row=1000, nrows=500)
 
 if __name__ == '__main__':
     main()
