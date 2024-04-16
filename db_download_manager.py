@@ -104,6 +104,8 @@ class DownloadManager:
                     self.save_download_result(row, filename, download_status='FALSE', download_message='Not received as PDF file')
                     return 'failed'
     
+            # Ensure the filename ends with '.pdf'
+            filename = filename if filename.endswith('.pdf') else f'{filename}.pdf'
             # Download the file
             urllib.request.urlretrieve(url, f'{self.folder}/{filename}')
             self.save_download_result(row, filename, download_status='TRUE', download_message='File downloaded successfully')
