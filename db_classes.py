@@ -113,6 +113,7 @@ class GRIPdf(BaseModel):
     id = Column(Integer, primary_key=True)
     BRnumber = Column(String(50), nullable=False)
     title = Column(Text, nullable=False)
+    file_name = Column(Text, nullable=False)
     publication_year = Column(Text, nullable=False)
     organization_name = Column(Text, nullable=False)
     organization_type = Column(Text, nullable=False)

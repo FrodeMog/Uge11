@@ -14,6 +14,7 @@ class TokenData(BaseModel):
 class GRIPdfBase(BaseModel):
     BRnumber: str
     title: str
+    file_name: str
     publication_year: str
     organization_name: str
     organization_type: str
