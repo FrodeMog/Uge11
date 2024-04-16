@@ -35,9 +35,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 API_KEY_NAME = "User_Authentication"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
+directory = "pdf-files"
 
 app = FastAPI()
-app.mount("/pdf-files", StaticFiles(directory="pdf-files"), name="pdf-files")
+
+# Check if the directory exists
+if not os.path.exists(directory):
+    # If the directory doesn't exist, create it
+    os.makedirs(directory)
+
+# Mount the directory
+app.mount("/pdf-files", StaticFiles(directory=directory), name="pdf-files")
 
 origins = [
     "http://localhost:3000",  # React's default port
