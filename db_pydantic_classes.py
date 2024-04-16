@@ -15,7 +15,9 @@ class RunningTask(BaseModel):
     task_id: str
     name: str
     status: str
+
     start_time: datetime
+    end_time: datetime
 
     start_row: int
     num_rows: int

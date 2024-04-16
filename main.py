@@ -222,12 +222,13 @@ async def get_pdf_file(brnumber: str, response_type: str = "download", current_u
 executor = ThreadPoolExecutor(max_workers = os.cpu_count() or 1)
 async def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: str, session: AsyncSession):
     loop = asyncio.get_event_loop()
-    results = await loop.run_in_executor(executor, lambda: dm.start_download(start_row, nrows=num_rows))
+    results = await loop.run_in_executor(executor, lambda: dm.start_download(start_row, num_rows))
     results_json = json.dumps(results)
+    end_time = datetime.now()
     stmt = (
         update(RunningTask).
         where(RunningTask.task_id == task_id).
-        values(status="finished", results=results_json)
+        values(status="finished", results=results_json, end_time=end_time)
     )
     await session.execute(stmt)
     await session.commit()
@@ -274,7 +275,7 @@ async def get_download_results(task_id: str, session: AsyncSession = Depends(get
         return {
             "status": "finished",
             "start_time": task.start_time,
-            "running_time": datetime.now() - task.start_time,
+            "running_time": task.end_time - task.start_time,
             "start_row": task.start_row,
             "num_rows": task.num_rows,
             "results": json.loads(results)

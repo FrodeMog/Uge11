@@ -174,6 +174,7 @@ class RunningTask(BaseModel):
     name = Column(String(50), nullable=False)
     status = Column(String(10), nullable=False)
     start_time = Column(DateTime, default=datetime.now)
+    end_time = Column(DateTime, nullable=True)
 
     start_row = Column(Integer, nullable=False)
     num_rows = Column(Integer, nullable=False)
