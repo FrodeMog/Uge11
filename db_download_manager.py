@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db_classes import GRIPdf
 from pathlib import Path
+import time
 
 # Set a default timeout for all socket operations
 socket.setdefaulttimeout(5)
@@ -143,17 +144,32 @@ class DownloadManager:
         counters['failed'] = nrows - counters['successful'] - counters['already_downloaded']
 
         return counters['successful'], counters['failed'], counters['already_downloaded']
-
+    
     def start_download(self, start_row, nrows):
+        start_time = time.time()
         rows = self.load_data(start=start_row, nrows=nrows)
         successful_downloads, failed_downloads, already_downloaded = self.download_files(rows, nrows)
-        print(f"Successfully downloaded: {successful_downloads}")
-        print(f"Already downloaded: {already_downloaded}")
-        print(f"Failed to download: {failed_downloads}")
-
+        end_time = time.time()
+        download_time = end_time - start_time
+    
+        # Convert the download time to hours, minutes, and seconds
+        m, s = divmod(download_time, 60)
+        h, m = divmod(m, 60)
+    
+        return {
+            "Download finished after": f"{int(h)} hours, {int(m)} minutes, {s:.2f} seconds",
+            "Successfully downloaded": successful_downloads,
+            "Already downloaded": already_downloaded,
+            "Failed to download": failed_downloads
+        }
+    
 def main():
     dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
-    dm.start_download(start_row=125, nrows=50)
+    results = dm.start_download(start_row=10, nrows=10)
+    print(f"Download finished after: {results.get('Download finished after')}")
+    print(f"Successfully downloaded: {results.get('Successfully downloaded')}")
+    print(f"Already downloaded: {results.get('Already downloaded')}")
+    print(f"Failed to download: {results.get('Failed to download')}")
 
 if __name__ == '__main__':
     main()
