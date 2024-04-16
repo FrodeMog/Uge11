@@ -11,6 +11,20 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     username: str | None = None
 
+class RunningTask(BaseModel):
+    task_id: str
+    name: str
+    status: str
+    start_time: datetime
+
+    start_row: int
+    num_rows: int
+
+    results: str
+
+    class Config:
+        orm_mode = True
+
 class GRIPdfBase(BaseModel):
     brnumber: str
     title: str

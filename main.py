@@ -11,6 +11,10 @@ from db_connect import DatabaseConnect
 from db_utils import DatabaseUtils
 from db_download_manager import DownloadManager
 
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from sqlalchemy.future import select
+from sqlalchemy import update
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -215,54 +219,66 @@ async def get_pdf_file(brnumber: str, response_type: str = "download", current_u
     else:
         raise HTTPException(status_code=404, detail="brnumber not found")
 
-download_tasks = {}
-
-def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: str):
-    start_time = time.time()
-    results = dm.start_download(start_row=start_row, nrows=num_rows)
-    end_time = time.time()
-    download_tasks[task_id] = {
-        "status": "finished",
-        "start_time": start_time,
-        "end_time": end_time,
-        "results": results
-    }
+executor = ThreadPoolExecutor(max_workers = os.cpu_count() or 1)
+async def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: str, session: AsyncSession):
+    loop = asyncio.get_event_loop()
+    results = await loop.run_in_executor(executor, lambda: dm.start_download(start_row, nrows=num_rows))
+    results_json = json.dumps(results)
+    stmt = (
+        update(RunningTask).
+        where(RunningTask.task_id == task_id).
+        values(status="finished", results=results_json)
+    )
+    await session.execute(stmt)
+    await session.commit()
 
 @app.post("/start_download/{start_row}/{num_rows}")
-def start_download(start_row: int, num_rows: int, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
+async def start_download(start_row: int, num_rows: int, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
     if not current_user.is_admin == "True":
         raise HTTPException(status_code=403, detail="User is not an admin")
     try:
         db_dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
         task_id = str(uuid.uuid4())
-        download_tasks[task_id] = {
-            "status": "running",
-            "start_time": time.time(),
-            "start_row": start_row,
-            "num_rows": num_rows
-        }
-        background_tasks.add_task(download_task, db_dm, start_row, num_rows, task_id)
+        new_task = RunningTask(
+            task_id=task_id,
+            name="Download Task",
+            status="running",
+            start_time=datetime.now(),
+            start_row=start_row,
+            num_rows=num_rows
+        )
+        session.add(new_task)
+        await session.commit()
+        background_tasks.add_task(download_task, db_dm, start_row, num_rows, task_id, session)
         return {"message": "Download started", "task_id": task_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/download_results/{task_id}")
-def get_download_results(task_id: str):
-    task = download_tasks.get(task_id)
+async def get_download_results(task_id: str, session: AsyncSession = Depends(get_db)):
+    result = await session.execute(select(RunningTask).where(RunningTask.task_id == task_id))
+    task = result.scalars().first()
     if not task:
         return {"message": "No such task"}
-    if task["status"] == "running":
+    if task.status == "running":
         return {
             "status": "running",
-            "start_time": task["start_time"],
-            "running_time": time.time() - task["start_time"],
-            "start_row": task["start_row"],
-            "num_rows": task["num_rows"]
+            "start_time": task.start_time,
+            "running_time": datetime.now() - task.start_time,
+            "start_row": task.start_row,
+            "num_rows": task.num_rows
         }
-    else:
-        results = task["results"]
-        del download_tasks[task_id]  # Delete the task after returning its results
-        return results
+    elif task.status == "finished":
+        results = task.results
+        await session.commit()
+        return {
+            "status": "finished",
+            "start_time": task.start_time,
+            "running_time": datetime.now() - task.start_time,
+            "start_row": task.start_row,
+            "num_rows": task.num_rows,
+            "results": json.loads(results)
+        }
 
 db_utils = DatabaseUtils()
 #db_utils.reset_and_setup_db()

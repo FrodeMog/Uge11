@@ -166,6 +166,20 @@ class BaseModel(Base):
         if not result:
             raise HTTPException(status_code=404, detail=f"No {cls.__name__} found")
         return result
+    
+class RunningTask(BaseModel):
+    __tablename__ = 'running_tasks'
+
+    task_id = Column(String(36), primary_key=True)  # UUIDs 
+    name = Column(String(50), nullable=False)
+    status = Column(String(10), nullable=False)
+    start_time = Column(DateTime, default=datetime.now)
+
+    start_row = Column(Integer, nullable=False)
+    num_rows = Column(Integer, nullable=False)
+
+    results = Column(Text, nullable=True)
+
         
 class GRIPdf(BaseModel):
     __tablename__ = 'GRIPdfs'
