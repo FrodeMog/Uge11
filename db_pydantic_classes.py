@@ -12,7 +12,7 @@ class TokenData(BaseModel):
     username: str | None = None
 
 class GRIPdfBase(BaseModel):
-    BRnumber: str
+    brnumber: str
     title: str
     file_name: str
     publication_year: str
@@ -21,6 +21,11 @@ class GRIPdfBase(BaseModel):
     organization_sector: str
     country: str
     region: str
+
+    download_status: str
+    download_message: str
+    download_attempt_date: datetime
+
     pdf_url: str
     pdf_backup_url: str
 
