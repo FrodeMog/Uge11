@@ -30,7 +30,15 @@ class UserBase(BaseModel):
     username: str = Field(..., min_length=3, regex="^[A-Za-z0-9_]+$")
     email: EmailStr
     password: str
-    is_admin: Optional[bool] = False
+
+    class Config:
+        orm_mode = True
+
+class UserAdmin(UserBase):
+    username: str = Field(..., min_length=3, regex="^[A-Za-z0-9_]+$")
+    email: EmailStr
+    password: str
+    is_admin: Optional[str] = True
 
     class Config:
         orm_mode = True
@@ -39,7 +47,28 @@ class UserInDB(UserBase):
     id: int
     username: str
     email: EmailStr
-    is_admin: bool
+    is_admin: str
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
+class UserResposne(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
+class UserAdminResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    is_admin: str
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
 
