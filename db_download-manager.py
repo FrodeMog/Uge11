@@ -50,7 +50,12 @@ class DownloadManager:
             # Yield the row as a dictionary
             yield dict(zip(headers, (cell.value for cell in row)))
 
-    def save_download_result(self, row, file_name, download_status, download_message=None):
+    def save_download_result(self, row, file_name, download_status, download_message=None, file_folder=None):
+        if file_folder is None:
+            file_folder = self.folder
+        if download_status == 'FALSE':
+            file_folder = ""
+            file_name = ""
         # Start a new SQLAlchemy session
         with self.SessionLocal() as session:
             # Use the create_pdf_sync method to create a new GRIPdf object
@@ -58,22 +63,39 @@ class DownloadManager:
                 session=session,
                 row=row,
                 file_name=file_name,
+                file_folder=file_folder,
                 download_status=download_status,
                 download_message=download_message,
             )
             
     def download_file(self, row, url_header):
         url = row[url_header]
+        BRnumber = row['BRnum']
         try:
             # Generate a unique filename
             filename = f'{url.split("/")[-1]}'
     
+            # If filename is None, save an error message and return 'filename_not_found'
+            if filename is None:
+                self.save_download_result(row, filename, download_status='FALSE', download_message='Filename could not be determined')
+                return 'failed'
+            
             # Check if the file already exists
             if os.path.exists(f'{self.folder}/{filename}'):
                 if filename.lower().endswith('.pdf'):
-                    self.save_download_result(row, filename, download_status='TRUE', download_message='File already exists')
+                    self.save_download_result(row, filename, download_status='TRUE', download_message='File already exists in this folder')
                     return 'already_downloaded'
-    
+
+            # Start a new SQLAlchemy session
+            with self.SessionLocal() as session:
+                # Query the database for a record with the specified BRnumber and download_status='TRUE'
+                pdf = session.query(GRIPdf).filter_by(BRnumber=BRnumber, download_status='TRUE').first()
+
+                # If such a record exists, return 'already_downloaded'
+                if pdf is not None:
+                    self.save_download_result(row, filename, download_status='TRUE', file_folder=pdf.file_folder, download_message=f'Download_status for {BRnumber} was already TRUE, should be found in folder: {pdf.file_folder}, wont attempt download to folder: {self.folder}')
+                    return 'already_downloaded'
+
             # Open the URL and read the first few bytes
             with urllib.request.urlopen(url, timeout=10) as u:
                 if not u.read(5).startswith(b'%PDF-'):
@@ -91,7 +113,7 @@ class DownloadManager:
     def download_files(self, rows, nrows, max_workers=None):
         if max_workers is None:
             max_workers = os.cpu_count() or 1
-        print(f"Attempting to download {nrows} files to {self.folder} using {max_workers} logical cpu cores")
+        print(f"Attempting to download {nrows} files to folder: {self.folder} using {max_workers} logical cpu cores")
     
         # Initialize counters
         counters = {'successful': 0, 'already_downloaded': 0}
@@ -130,7 +152,7 @@ class DownloadManager:
 
 def main():
     dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
-    dm.start_download(start_row=0, nrows=50)
+    dm.start_download(start_row=125, nrows=50)
 
 if __name__ == '__main__':
     main()

@@ -119,10 +119,11 @@ class BaseModel(Base):
 class GRIPdf(BaseModel):
     __tablename__ = 'GRIPdfs'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, nullable=False)
     BRnumber = Column(String(50), nullable=False, unique=True)
     title = Column(Text, nullable=True)
-    file_name = Column(Text, nullable=False)
+    file_name = Column(Text, nullable=True)
+    file_folder = Column(Text, nullable=True)
     publication_year = Column(Text, nullable=True)
     organization_name = Column(Text, nullable=True)
     organization_type = Column(Text, nullable=True)
@@ -131,7 +132,7 @@ class GRIPdf(BaseModel):
     region = Column(Text, nullable=True)
 
     download_status = Column(Text, nullable=False)
-    download_message = Column(Text, nullable=False)
+    download_message = Column(Text, nullable=True)
     download_attempt_date = Column(DateTime, default=datetime.now)
 
     pdf_url = Column(Text, nullable=True)
@@ -139,11 +140,12 @@ class GRIPdf(BaseModel):
     
     @classmethod
     @error_handler_sync
-    def process_row(cls, session, row, file_name, download_status, download_message=None):
+    def process_row(cls, session, row, file_name, file_folder, download_status, download_message=None):
         data = {
             'BRnumber': row['BRnum'],
             'title': row['Title'],
             'file_name': file_name,
+            'file_folder': file_folder,
             'publication_year': row['Publication Year'],
             'organization_name': row['Name'],
             'organization_type': row['Organization type'],
