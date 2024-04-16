@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db_classes import *
 from sqlalchemy import inspect
+from werkzeug.security import generate_password_hash
 
 class DatabaseUtils:
 
@@ -24,22 +25,31 @@ class DatabaseUtils:
         self.SessionLocal = SessionLocal
         self.create_schema()
 
-    def setup_db(self):
+    def reset_and_setup_db(self):
         self.drop_tables()
         self.create_tables()
-        self.generate_user('user', 'user', 'user@user.com', False)
-        self.generate_user('admin', 'admin', 'admin@admin.com', True)
+        self.setup_db()
 
-    def generate_user(self, username, password, email, is_admin=False):
+    def setup_db(self):
+        self.create_tables()
+        self.generate_user('user', 'user', 'user@user.com', "False")
+        self.generate_user('admin', 'admin', 'admin@admin.com', "True")
+
+    def generate_user(self, username, password, email, is_admin="False"):
         db = self.SessionLocal()
-        user = User.create_user(username, password, email, is_admin)
+        #check if user exist
+        user = db.query(User).filter(User.username == username).first() or db.query(User).filter(User.email == email).first()
+        if user:
+            db.close()
+            return
+        user = User(username=username, email=email, password=generate_password_hash(password), is_admin=is_admin)
         db.add(user)
         db.commit()
         db.close()
 
     def drop_tables(self):
         from db_classes import Base
-        if inspect(self.engine).has_table('cereals'):
+        if inspect(self.engine).has_table('users'):
             # Drop all tables in the database
             Base.metadata.drop_all(bind=self.engine)
 
@@ -67,4 +77,5 @@ class DatabaseUtils:
     def create_tables(self):
         from db_classes import Base
         # Create all tables in the database
-        Base.metadata.create_all(bind=self.engine)
+        if not inspect(self.engine).has_table('users'):
+            Base.metadata.create_all(bind=self.engine)
