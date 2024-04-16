@@ -96,7 +96,7 @@ class DownloadManager:
     def download_files(self, rows, nrows, max_workers=None):
         if max_workers is None:
             max_workers = os.cpu_count() or 1
-        print(f"Attempting to download {nrows} files to {self.folder} using {max_workers} workers")
+        print(f"Attempting to download {nrows} files to {self.folder} using {max_workers} logical cpu cores")
     
         # Initialize counters
         counters = {'successful': 0, 'already_downloaded': 0}
@@ -135,7 +135,7 @@ class DownloadManager:
 
 def main():
     dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
-    dm.start_download(start_row=1000, nrows=500)
+    dm.start_download(start_row=1500, nrows=50)
 
 if __name__ == '__main__':
     main()
