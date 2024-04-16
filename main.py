@@ -151,6 +151,39 @@ async def create_admin_user(user: UserAdmin, current_user: User = Depends(get_cu
         return UserAdminResponse.from_orm(result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/pdfs", response_model=List[GRIPdfBase])
+async def get_pdfs(session: AsyncSession = Depends(get_db)):
+    result = await GRIPdf.get_all(session)
+    if result:
+        return result
+    else:
+        raise HTTPException(status_code=404, detail="No PDFs found")
+    
+@app.get("/pdfs/brnumber/{brnumber}", response_model=GRIPdfBase)
+async def get_by_brnumber(brnumber: str, session: AsyncSession = Depends(get_db)):
+    result = await GRIPdf.get_by_brnumber(session, brnumber)
+    if result:
+        return result
+    else:
+        raise HTTPException(status_code=404, detail="PDF not found")
+    
+@app.get("/pdfs/id/{id}", response_model=GRIPdfBase)
+async def get_pdf(id: int, session: AsyncSession = Depends(get_db)):
+    result = await GRIPdf.get_by_id(session, id)
+    if result:
+        return result
+    else:
+        raise HTTPException(status_code=404, detail="PDF not found")
+
+@app.get("/pdfs/field_value/{field}/{value}", response_model=List[GRIPdfBase])
+async def get_pdf_by_field_value(field: str, value: str, session: AsyncSession = Depends(get_db)):
+    result = await GRIPdf.get_by_field_value(session, field, value)
+    if result:
+        return result
+    else:
+        raise HTTPException(status_code=404, detail="PDF not found")
+
 
 db_utils = DatabaseUtils()
 #db_utils.reset_and_setup_db()
