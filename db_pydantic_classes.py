@@ -19,6 +19,7 @@ class RunningTask(BaseModel):
     start_time: datetime
     end_time: datetime
 
+    processed_rows: int
     start_row: int
     num_rows: int
 

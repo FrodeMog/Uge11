@@ -1,21 +1,19 @@
-from fastapi import FastAPI, HTTPException, status, Depends, Security, UploadFile, File
+from fastapi import FastAPI, HTTPException, status, Depends, Security, UploadFile, File, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, APIKeyHeader
 from fastapi.staticfiles import StaticFiles
-from fastapi import BackgroundTasks
 
 from db_pydantic_classes import *
 from db_classes import *
 from db_connect import DatabaseConnect
+from db_connect import DatabaseConnectSync
 from db_utils import DatabaseUtils
 from db_download_manager import DownloadManager
 
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 from sqlalchemy.future import select
 from sqlalchemy import update
-
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from jose import JWTError, jwt
@@ -79,6 +77,14 @@ async def get_db():
         yield session
     finally:
         await db_connect.close()
+
+def get_sync_db():
+    db_connect = DatabaseConnectSync.connect_from_config()
+    session = db_connect.get_new_session()
+    try:
+        yield session
+    finally:
+        db_connect.close()
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
@@ -262,22 +268,44 @@ async def list_files():
     files = [f for f in listdir('pdf-files') if isfile(join('pdf-files', f))]
     return files
 
-executor = ThreadPoolExecutor(max_workers = os.cpu_count() or 1)
-async def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: str, session: AsyncSession = Depends(get_db)):
-    loop = asyncio.get_event_loop()
-    results = await loop.run_in_executor(executor, lambda: dm.start_download(start_row, num_rows))
-    results_json = json.dumps(results)
+#Have use sync session here, async session freezes the api
+def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: str, session: Session = Depends(get_sync_db)):
+    last_commit_time = time.time()
+    result = None  # Define result here
+
+    def download_and_update():
+        nonlocal last_commit_time, result  # Add result here
+        for result in dm.start_download(start_row, num_rows):
+            # Update the task with the latest result
+            result_json = json.dumps(result)
+            end_time = datetime.now()
+            stmt = (
+                update(RunningTask).
+                where(RunningTask.task_id == task_id).
+                values(status="running", results=result_json, end_time=end_time, processed_rows=result['processed_rows'])
+            )
+            current_time = time.time()
+            if current_time - last_commit_time >= 1:  # Check if at least 1 second has passed
+                session.execute(stmt)
+                session.commit()
+                last_commit_time = current_time  # Update the last commit time
+
+    download_and_update()
+
+    # Mark the task as finished
     end_time = datetime.now()
+    result_json = json.dumps(result)  # Use result here
     stmt = (
         update(RunningTask).
         where(RunningTask.task_id == task_id).
-        values(status="finished", results=results_json, end_time=end_time)
+        values(status="finished", results=result_json, end_time=end_time, processed_rows=result['processed_rows'])
     )
-    await session.execute(stmt)
-    await session.commit()
+    session.execute(stmt)
+    session.commit()
 
+#Have use sync session here, async session freezes the api
 @app.post("/start_download/{start_row}/{num_rows}/")
-async def start_download(start_row: int, num_rows: int, background_tasks: BackgroundTasks, filename: str = "GRI_2017_2020.xlsx", current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
+async def start_download(start_row: int, num_rows: int, background_tasks: BackgroundTasks, filename: str = "GRI_2017_2020.xlsx", current_user: User = Depends(get_current_admin_user), session: Session = Depends(get_sync_db)):
     if not current_user.is_admin == "True":
         raise HTTPException(status_code=403, detail="User is not an admin")
     try:
@@ -292,7 +320,7 @@ async def start_download(start_row: int, num_rows: int, background_tasks: Backgr
             num_rows=num_rows
         )
         session.add(new_task)
-        await session.commit()
+        session.commit()
         background_tasks.add_task(download_task, db_dm, start_row, num_rows, task_id, session)
         return {"message": "Download started", "task_id": task_id}
     except Exception as e:
@@ -305,12 +333,15 @@ async def get_download_results(task_id: str, session: AsyncSession = Depends(get
     if not task:
         return {"message": "No such task"}
     if task.status == "running":
+        results = task.results
         return {
             "status": "running",
             "start_time": task.start_time,
             "running_time": datetime.now() - task.start_time,
             "start_row": task.start_row,
-            "num_rows": task.num_rows
+            "num_rows": task.num_rows,
+            "processed_rows": task.processed_rows,
+            "results": json.loads(results)
         }
     elif task.status == "finished":
         results = task.results
@@ -321,6 +352,7 @@ async def get_download_results(task_id: str, session: AsyncSession = Depends(get
             "running_time": task.end_time - task.start_time,
             "start_row": task.start_row,
             "num_rows": task.num_rows,
+            "processed_rows": task.processed_rows,
             "results": json.loads(results)
         }
 

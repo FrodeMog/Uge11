@@ -176,6 +176,8 @@ class RunningTask(BaseModel):
     start_time = Column(DateTime, default=datetime.now)
     end_time = Column(DateTime, nullable=True)
 
+    processed_rows = Column(Integer, default=0)
+
     start_row = Column(Integer, nullable=False)
     num_rows = Column(Integer, nullable=False)
 

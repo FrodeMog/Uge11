@@ -120,58 +120,67 @@ class DownloadManager:
         print(f"Attempting to download {nrows} files to folder: {self.folder} using {max_workers} logical cpu cores")
     
         # Initialize counters
-        counters = {'successful': 0, 'already_downloaded': 0}
+        counters = {'successful': 0, 'already_downloaded': 0, 'failed': 0, 'processed_rows': 0}
     
         # Process the rows
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {}
-            for row in tqdm(rows, desc="Submitting tasks", total=nrows):
+            for row in rows:
                 # Submit the Pdf_URL download task to the executor
                 future = executor.submit(self.download_file, row, 'Pdf_URL')
                 futures[future] = (row, 'Pdf_URL')
-
+    
             # Wait for tasks to complete and update counters
-            for future in tqdm(as_completed(futures), total=len(futures), desc="Downloading files"):
+            for future in as_completed(futures):
                 result = future.result()
                 if result in counters:
                     counters[result] += 1
-
+    
                 row, url_header = futures[future]
                 if result == 'failed' and url_header == 'Pdf_URL':
                     # If the Pdf_URL download task failed, submit the Report Html Address download task to the executor
                     future = executor.submit(self.download_file, row, 'Report Html Address')
                     futures[future] = (row, 'Report Html Address')
-
-        # Calculate the number of failed downloads
-        counters['failed'] = nrows - counters['successful'] - counters['already_downloaded']
-
-        return counters['successful'], counters['failed'], counters['already_downloaded']
     
+                # Increment the processed_rows counter
+                counters['processed_rows'] += 1
+    
+                # Yield the current counters
+                yield counters
+
     def start_download(self, start_row, nrows):
         start_time = time.time()
         rows = self.load_data(start=start_row, nrows=nrows)
-        successful_downloads, failed_downloads, already_downloaded = self.download_files(rows, nrows)
-        end_time = time.time()
-        download_time = end_time - start_time
     
-        # Convert the download time to hours, minutes, and seconds
-        m, s = divmod(download_time, 60)
-        h, m = divmod(m, 60)
+        # Initialize counters
+        counters = {'successful': 0, 'already_downloaded': 0, 'failed': 0}
     
-        return {
-            "Download finished after": f"{int(h)} hours, {int(m)} minutes, {s:.2f} seconds",
-            "Successfully downloaded": successful_downloads,
-            "Already downloaded": already_downloaded,
-            "Failed to download": failed_downloads
-        }
+        # Process the rows
+        with tqdm(total=nrows) as pbar:
+            for result in self.download_files(rows, nrows):
+                counters.update(result)
     
+                # Calculate the elapsed time
+                elapsed_time = time.time() - start_time
+                m, s = divmod(elapsed_time, 60)
+                h, m = divmod(m, 60)
+    
+                # Update the description of the progress bar with the status information
+                pbar.set_description(f"Elapsed time: {int(h)} hours, {int(m)} minutes, {s:.2f} seconds, "
+                                     f"Success: {counters['successful']}, "
+                                     f"Existed: {counters['already_downloaded']}, "
+                                     f"Failed: {counters['failed']}")
+    
+                pbar.update()  # Update the progress bar
+
+                yield counters
+
 def main():
-    dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
-    results = dm.start_download(start_row=10, nrows=10)
-    print(f"Download finished after: {results.get('Download finished after')}")
-    print(f"Successfully downloaded: {results.get('Successfully downloaded')}")
-    print(f"Already downloaded: {results.get('Already downloaded')}")
-    print(f"Failed to download: {results.get('Failed to download')}")
+    dm = DownloadManager(folder='pdf-files', file_with_urls='pdf-urls/GRI_2017_2020.xlsx')
+    start_row = 0
+    nrows = 20
+    for result in dm.start_download(start_row, nrows):
+        pass
 
 if __name__ == '__main__':
     main()
