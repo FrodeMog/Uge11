@@ -49,6 +49,7 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
 directory = "pdf-files"
 
 app = FastAPI()
+db_utils = DatabaseUtils()
 
 # Check if the directory exists
 if not os.path.exists(directory):
@@ -221,6 +222,25 @@ async def get_pdf_file(brnumber: str, response_type: str = "download", current_u
     else:
         raise HTTPException(status_code=404, detail="brnumber not found")
 
+@app.get("/download_metadata_xlsx/")
+async def download_gripdfs_xlsx(file_name: str = "metadata_summary.xlsx"):
+    folder_location = "pdf-summary"
+    os.makedirs(folder_location, exist_ok=True)
+    file_location = f"{folder_location}/{file_name}"
+    
+    # Create the Excel file
+    db_utils.extract_table_as_xlsx(GRIPdf, file_name, folder_location)
+    
+    # Check if the file was created successfully
+    if not exists(file_location):
+        raise HTTPException(status_code=500, detail="Failed to create Excel file")
+    
+    # Return the file as a download
+    return FileResponse(
+        path=file_location,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={file_name}"}
+    )
 
 @app.post("/upload_files/pdf-urls/{overwrite}")
 async def upload_files(files: List[UploadFile] = File(...), overwrite: bool = False, current_user: User = Depends(get_current_admin_user)):
@@ -256,8 +276,8 @@ async def download_task(dm: DownloadManager, start_row: int, num_rows: int, task
     await session.execute(stmt)
     await session.commit()
 
-@app.post("/start_download/{start_row}/{num_rows}/{filename}")
-async def start_download(start_row: int, num_rows: int, filename: str, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
+@app.post("/start_download/{start_row}/{num_rows}/")
+async def start_download(start_row: int, num_rows: int, background_tasks: BackgroundTasks, filename: str = "GRI_2017_2020.xlsx", current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
     if not current_user.is_admin == "True":
         raise HTTPException(status_code=403, detail="User is not an admin")
     try:
@@ -304,7 +324,6 @@ async def get_download_results(task_id: str, session: AsyncSession = Depends(get
             "results": json.loads(results)
         }
 
-db_utils = DatabaseUtils()
 #db_utils.reset_and_setup_db()
 db_utils.setup_db()
 #db_utils.extract_table_as_csv(User, "users.csv")
