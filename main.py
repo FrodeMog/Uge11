@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status, Depends, Security
+from fastapi import FastAPI, HTTPException, status, Depends, Security, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, APIKeyHeader
@@ -25,6 +25,8 @@ from datetime import datetime, timedelta
 import json
 from typing import List
 import os
+from os import listdir
+from os.path import isfile, join, exists
 import time
 import uuid
 
@@ -193,7 +195,7 @@ async def get_pdf_by_field_value(field: str, value: str, session: AsyncSession =
     else:
         raise HTTPException(status_code=404, detail="PDF not found")
     
-@app.get("/pdfs/brnumber/{brnumber}/pdf_file")
+@app.get("/pdfs/download/{brnumber}/pdf_file")
 async def get_pdf_file(brnumber: str, response_type: str = "download", current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_db)):
     result = await GRIPdf.get_by_brnumber(session, brnumber)
     if result:
@@ -219,6 +221,27 @@ async def get_pdf_file(brnumber: str, response_type: str = "download", current_u
     else:
         raise HTTPException(status_code=404, detail="brnumber not found")
 
+
+@app.post("/upload_files/pdf-urls/{overwrite}")
+async def upload_files(files: List[UploadFile] = File(...), overwrite: bool = False, current_user: User = Depends(get_current_admin_user)):
+    for file in files:
+        file_location = f"pdf-urls/{file.filename}"
+        if exists(file_location) and not overwrite:
+            raise HTTPException(status_code=400, detail=f"File {file.filename} already exists.")
+        with open(file_location, "wb+") as file_object:
+            file_object.write(file.file.read())
+    return {"detail": "File uploaded successfully"}
+
+@app.get("/list_files/pdf-urls/")
+async def list_files():
+    files = [f for f in listdir('pdf-urls') if isfile(join('pdf-urls', f))]
+    return files
+
+@app.get("/list_files/pdf-files/")
+async def list_files():
+    files = [f for f in listdir('pdf-files') if isfile(join('pdf-files', f))]
+    return files
+
 executor = ThreadPoolExecutor(max_workers = os.cpu_count() or 1)
 async def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: str, session: AsyncSession = Depends(get_db)):
     loop = asyncio.get_event_loop()
@@ -233,12 +256,12 @@ async def download_task(dm: DownloadManager, start_row: int, num_rows: int, task
     await session.execute(stmt)
     await session.commit()
 
-@app.post("/start_download/{start_row}/{num_rows}")
-async def start_download(start_row: int, num_rows: int, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
+@app.post("/start_download/{start_row}/{num_rows}/{filename}")
+async def start_download(start_row: int, num_rows: int, filename: str, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
     if not current_user.is_admin == "True":
         raise HTTPException(status_code=403, detail="User is not an admin")
     try:
-        db_dm = DownloadManager(folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx')
+        db_dm = DownloadManager(folder='pdf-files', file_with_urls=f'pdf-urls\\{filename}')
         task_id = str(uuid.uuid4())
         new_task = RunningTask(
             task_id=task_id,
