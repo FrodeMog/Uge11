@@ -208,23 +208,23 @@ class GRIPdf(BaseModel):
     @error_handler_sync
     def process_row(cls, session, row, file_name, file_folder, download_status, download_message=None):
         data = {
-            'brnumber': row['BRnum'],
-            'title': row['Title'],
+            'brnumber': row.get('BRnum', ""),
+            'title': row.get('Title', ""),
             'file_name': file_name,
             'file_folder': file_folder,
-            'publication_year': row['Publication Year'],
-            'organization_name': row['Name'],
-            'organization_type': row['Organization type'],
-            'organization_sector': row['Sector'],
-            'country': row['Country'],
-            'region': row['Region'],
-            'pdf_url': row['Pdf_URL'],
-            'pdf_backup_url': row['Report Html Address'],
+            'publication_year': row.get('Publication Year', ""),
+            'organization_name': row.get('Name', ""),
+            'organization_type': row.get('Organization type', ""),
+            'organization_sector': row.get('Sector', ""),
+            'country': row.get('Country', ""),
+            'region': row.get('Region', ""),
+            'pdf_url': row.get('Pdf_URL', ""),
+            'pdf_backup_url': row.get('Report Html Address', ""),
             'download_status': download_status,
             'download_message': download_message,
             'download_attempt_date': datetime.now(),
         }
-    
+        
         pdf = cls.upsert(session, **data)
         return pdf
     
