@@ -13,7 +13,7 @@ const Register = () => {
     const [showToast, setShowToast] = useState(false); 
     const [toastMessage, setToastMessage] = useState('');
 
-    const { setLoggedInUser } = useContext(AuthContext);
+    const { setuserToken } = useContext(AuthContext);
 
     const handleRegister = async (event) => {
         event.preventDefault();
@@ -37,10 +37,10 @@ const Register = () => {
             const { access_token } = loginResponse.data;
             console.log(access_token);
         
-            setLoggedInUser(access_token); // Set the access token
+            setuserToken(access_token); // Set the access token
         
             // Store the access token in localStorage
-            localStorage.setItem('loggedInUser', JSON.stringify(access_token));
+            localStorage.setItem('userToken', JSON.stringify(access_token));
 
             setToastMessage('User: '+user.username+' created successfully!');
             setShowToast(true);

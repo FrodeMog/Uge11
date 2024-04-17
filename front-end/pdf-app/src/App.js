@@ -18,7 +18,7 @@ import AdminProtectedRoute from './components/AdminProtectedRoute.js';
 
 const App = () => {
   
-  const { loggedInUser } = useContext(AuthContext);
+  const { userToken } = useContext(AuthContext);
 
   return (
     <div className="App">

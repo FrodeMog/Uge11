@@ -9,10 +9,10 @@ const NavBar = () => {
     const navigate = useNavigate();
 
     // get the logged in user
-    const { loggedInUser, handleContextLogin, isAdmin, setLoggedInUser } = useContext(AuthContext);
+    const { userToken, handleContextLogin, isAdmin, setuserToken } = useContext(AuthContext);
 
     // decode the token to get the username
-    const decodedToken = loggedInUser ? jwtDecode(loggedInUser) : null;
+    const decodedToken = userToken ? jwtDecode(userToken) : null;
     const username = decodedToken ? decodedToken.sub : null;
 
     return (
@@ -21,16 +21,16 @@ const NavBar = () => {
           <a className="navbar-brand" href="#" onClick={() => navigate('/')}>
             pdf App
           </a>
-          {loggedInUser && <button className="btn btn-primary" onClick={() => navigate('/dashboard/user')}>User Dashboard</button>}
-          {loggedInUser && isAdmin==="True" && <button className="btn btn-primary" onClick={() => navigate('/dashboard/admin')}>Admin Dashboard</button>}
-              {loggedInUser ? (
+          {userToken && <button className="btn btn-primary" onClick={() => navigate('/dashboard/user')}>User Dashboard</button>}
+          {userToken && isAdmin==="True" && <button className="btn btn-primary" onClick={() => navigate('/dashboard/admin')}>Admin Dashboard</button>}
+              {userToken ? (
                 <div>
                     <span className="navbar-text">
                         Logged in as: {username}
                     </span>
                     <button className="btn btn-primary" onClick={() => { // Logout button
-                        setLoggedInUser(null);
-                        localStorage.removeItem('loggedInUser'); // Remove the user data from localStorage
+                        setuserToken(null);
+                        localStorage.removeItem('userToken'); // Remove the user data from localStorage
                     }}>Logout</button>
                 </div>
             ) : (

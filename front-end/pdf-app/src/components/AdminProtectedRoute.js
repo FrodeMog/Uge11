@@ -3,10 +3,10 @@ import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/auth.js';
 
 function ProtectedRoute({ children }) {
-    const { loggedInUser, handleContextLogin, isAdmin } = useContext(AuthContext);
+    const { userToken, handleContextLogin, isAdmin } = useContext(AuthContext);
 
-    // Check if the loggedInUser is an admin
-    if (!loggedInUser || isAdmin != "True") {
+    // Check if the userToken is an admin
+    if (!userToken || isAdmin != "True") {
         // User not logged in or not an admin, redirect to login page
         return <Navigate to="/" />;
     }

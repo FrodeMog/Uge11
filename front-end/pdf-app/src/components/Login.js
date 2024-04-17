@@ -12,7 +12,7 @@ const Login = () => {
     const [toastMessage, setToastMessage] = useState('');
     const [showModal, setShowModal] = useState(false); // State to control the visibility of the modal
 
-    const { setLoggedInUser } = useContext(AuthContext);
+    const { setuserToken } = useContext(AuthContext);
 
     const handleLogin = async (event) => {
         event.preventDefault();
@@ -33,10 +33,10 @@ const Login = () => {
             const { access_token } = response.data;
             console.log(access_token);
         
-            setLoggedInUser(access_token); // Set the access token
+            setuserToken(access_token); // Set the access token
         
             // Store the access token in localStorage
-            localStorage.setItem('loggedInUser', JSON.stringify(access_token));
+            localStorage.setItem('userToken', JSON.stringify(access_token));
         
             setToastMessage('User: '+username+' logged in successfully!');
             setShowToast(true);

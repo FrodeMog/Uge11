@@ -8,10 +8,10 @@ const UserDashboard = () => {
     const navigate = useNavigate();
 
     // get the logged in user
-    const { loggedInUser, handleContextLogin, isAdmin, setLoggedInUser } = useContext(AuthContext);
+    const { userToken, handleContextLogin, isAdmin, setuserToken } = useContext(AuthContext);
 
     // decode the token to get the username
-    const decodedToken = loggedInUser ? jwtDecode(loggedInUser) : null;
+    const decodedToken = userToken ? jwtDecode(userToken) : null;
     const username = decodedToken ? decodedToken.sub : null;
     
     return (

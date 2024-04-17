@@ -8,8 +8,8 @@ import { Card, Button, Form, InputGroup, FormControl, DropdownButton, Dropdown, 
 
 const PdfFiles = () => {
     const navigate = useNavigate();
-    const { loggedInUser, handleContextLogin, isAdmin, setLoggedInUser } = useContext(AuthContext);
-    const decodedToken = loggedInUser ? jwtDecode(loggedInUser) : null;
+    const { userToken, handleContextLogin, isAdmin, setuserToken } = useContext(AuthContext);
+    const decodedToken = userToken ? jwtDecode(userToken) : null;
     const username = decodedToken ? decodedToken.sub : null;
     const [showToast, setShowToast] = useState(false); 
     const [toastMessage, setToastMessage] = useState('');
@@ -31,7 +31,7 @@ const PdfFiles = () => {
         try {
             const response = await api.get(`/pdfs/download/${pdfFile.brnumber}/pdf_file`, {
                 headers: {
-                    'Authorization': `Bearer ${loggedInUser}`
+                    'Authorization': `Bearer ${userToken}`
                 },
                 responseType: 'blob' // specify that the response type should be 'blob'
             });

@@ -9,15 +9,15 @@ const Home = () => {
     const navigate = useNavigate();
 
     // get the logged in user
-    const { loggedInUser, handleContextLogin, isAdmin, setLoggedInUser } = useContext(AuthContext);
+    const { userToken, handleContextLogin, isAdmin, setuserToken } = useContext(AuthContext);
 
     // decode the token to get the username
-    const decodedToken = loggedInUser ? jwtDecode(loggedInUser) : null;
+    const decodedToken = userToken ? jwtDecode(userToken) : null;
     const username = decodedToken ? decodedToken.sub : null;
     
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-            {loggedInUser ? (
+            {userToken ? (
                 <>
                     <h1>Hello {username} </h1>
                     <p>You are home</p>
