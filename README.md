@@ -67,7 +67,7 @@ Day 3|  | 6h | Up to 2h extra
 Day 4|  | 6h | Up to 2h extra
 ✅| Front-end: Basic structure | 1h | Day 4
 ✅| Front-end: Login page | 1h | Day 4
-⬜| Front-end: Basic download page | 1h | Day 4
+✅| Front-end: Basic download page | 1h | Day 4
 ⬜| Front-end: advanced search download page | 3h | Day 4
 ⬜| Front-end: Admin can register new users | 2h | Day 4
 Day 5|  | 6h | Up to 2h extra
