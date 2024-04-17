@@ -139,7 +139,7 @@ Example:
 
 Go to
 ```
-/front-end/pdf-downloader-app
+/front-end/pdf-app
 ```
 Run
 ```
@@ -167,7 +167,7 @@ localhost:8000/docs
 
 Open 2nd terminal and go to
 ```
-/front-end/pdf-downloader-app
+/front-end/pdf-app
 ```
 Run
 ```
