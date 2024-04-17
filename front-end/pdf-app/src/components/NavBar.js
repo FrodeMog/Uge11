@@ -21,7 +21,8 @@ const NavBar = () => {
           <a className="navbar-brand" href="#" onClick={() => navigate('/')}>
             pdf App
           </a>
-          {loggedInUser && <button className="btn btn-primary" onClick={() => navigate('/pdfList')}>pdf List</button>}
+          {loggedInUser && <button className="btn btn-primary" onClick={() => navigate('/dashboard/user')}>User Dashboard</button>}
+          {loggedInUser && isAdmin==="True" && <button className="btn btn-primary" onClick={() => navigate('/dashboard/admin')}>Admin Dashboard</button>}
               {loggedInUser ? (
                 <div>
                     <span className="navbar-text">

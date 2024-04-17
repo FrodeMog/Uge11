@@ -65,8 +65,8 @@ Day 3|  | 6h | Up to 2h extra
 ✅| API: POST to run download manager with limiter options | 2h | Day 3
 ✅| API: AUTH of user and admin | 2h | Day 3
 Day 4|  | 6h | Up to 2h extra
-⬜| Front-end: Basic structure | 1h | Day 4
-⬜| Front-end: Login page | 1h | Day 4
+✅| Front-end: Basic structure | 1h | Day 4
+✅| Front-end: Login page | 1h | Day 4
 ⬜| Front-end: Basic download page | 1h | Day 4
 ⬜| Front-end: advanced search download page | 3h | Day 4
 ⬜| Front-end: Admin can register new users | 2h | Day 4

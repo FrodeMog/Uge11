@@ -7,6 +7,8 @@ import { AuthContext } from './contexts/auth.js';
 // Import Components
 import NavBar from './components/NavBar.js';
 import Home from './components/Home.js';
+import UserDashboard from './components/UserDashboard.js';
+import AdminDashboard from './components/AdminDashboard.js';
 // Import React Router
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
@@ -24,6 +26,16 @@ const App = () => {
       <NavBar />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/dashboard/user" element={
+            <UserProtectedRoute>
+              <UserDashboard />
+            </UserProtectedRoute>
+          } />
+          <Route path="/dashboard/admin" element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          } />
         </Routes>
       </BrowserRouter>
 
