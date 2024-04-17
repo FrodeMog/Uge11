@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from db_classes import *
 from sqlalchemy import inspect
 from werkzeug.security import generate_password_hash
+from openpyxl import Workbook
 
 class DatabaseUtils:
 
@@ -25,13 +26,24 @@ class DatabaseUtils:
         self.SessionLocal = SessionLocal
         self.create_schema()
 
-    def extract_table_as_csv(self, table_name, file_name):
+    def extract_table_as_csv(self, table_name, file_name, folder_location="pdf-summary"):
         db = self.SessionLocal()
         query = db.query(table_name)
-        with open(file_name, 'w') as f:
+        with open(f"{folder_location}/{file_name}", 'w') as f:
             f.write(','.join([column.name for column in table_name.__table__.columns]) + '\n')
             for row in query:
                 f.write(','.join([str(getattr(row, column.name)) for column in table_name.__table__.columns]) + '\n')
+        db.close()
+    
+    def extract_table_as_xlsx(self, table_name, file_name, folder_location="pdf-summary"):
+        db = self.SessionLocal()
+        query = db.query(table_name)
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.append([column.name for column in table_name.__table__.columns])
+        for row in query:
+            sheet.append([str(getattr(row, column.name)) for column in table_name.__table__.columns])
+        workbook.save(f"{folder_location}/{file_name}")
         db.close()
 
     def reset_and_setup_db(self):
