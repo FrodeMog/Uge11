@@ -29,21 +29,21 @@ class RunningTask(BaseModel):
 
 class GRIPdfBase(BaseModel):
     brnumber: str
-    title: str
-    file_name: str
-    publication_year: str
-    organization_name: str
-    organization_type: str
-    organization_sector: str
-    country: str
-    region: str
+    title: Optional[str] = None
+    file_name: Optional[str] = None
+    publication_year: Optional[str] = None
+    organization_name: Optional[str] = None
+    organization_type: Optional[str] = None
+    organization_sector: Optional[str] = None
+    country: Optional[str] = None
+    region: Optional[str] = None
 
     download_status: str
-    download_message: str
+    download_message: Optional[str] = None
     download_attempt_date: datetime
 
-    pdf_url: str
-    pdf_backup_url: str
+    pdf_url: Optional[str] = None
+    pdf_backup_url: Optional[str] = None
 
     class Config:
         orm_mode = True
