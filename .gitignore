@@ -10,6 +10,7 @@ __pycache__/
 db_info.json
 jwt_info.json
 pdf-files/
+pdf-summary/
 
 # Distribution / packaging
 .Python
