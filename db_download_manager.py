@@ -125,7 +125,7 @@ class DownloadManager:
         # Process the rows
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {}
-            for row in tqdm(rows, desc="Processing data", total=nrows):
+            for row in tqdm(rows, desc="Submitting tasks", total=nrows):
                 # Submit the Pdf_URL download task to the executor
                 future = executor.submit(self.download_file, row, 'Pdf_URL')
                 futures[future] = (row, 'Pdf_URL')
