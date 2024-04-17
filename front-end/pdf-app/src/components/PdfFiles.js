@@ -11,9 +11,12 @@ const PdfFiles = () => {
     const { userToken, handleContextLogin, isAdmin, setuserToken } = useContext(AuthContext);
     const decodedToken = userToken ? jwtDecode(userToken) : null;
     const username = decodedToken ? decodedToken.sub : null;
-    const [showToast, setShowToast] = useState(false); 
+    const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [pdfFiles, setPdfFiles] = useState([]); // Define pdfFiles and setPdfFiles
+
+    const [sortColumn, setSortColumn] = useState(null);
+    const [sortDirection, setSortDirection] = useState(true); // true for ascending, false for descending
 
     useEffect(() => {
         const fetchPdfFiles = async () => {
@@ -42,61 +45,128 @@ const PdfFiles = () => {
             link.setAttribute('download', `${pdfFile.brnumber}.pdf`);
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
         } catch (error) {
-            console.error('There was an error downloading the PDF file:', error);
+            console.error('Failed to fetch resource:', error);
+            let errorMessage = 'Failed to fetch resource.';
+            if (error.response) {
+                if (error.response.status === 404) {
+                    errorMessage = 'Resource not found.';
+                } else if (error.response.status === 401) {
+                    errorMessage = 'Unauthorized.';
+                } else if (error.response.data && error.response.data.detail) {
+                    errorMessage = typeof error.response.data.detail === 'object'
+                        ? JSON.stringify(error.response.data.detail)
+                        : error.response.data.detail;
+                }
+            }
+            setToastMessage(errorMessage);
+            setShowToast(true);
         }
     };
 
-    const [showAll, setShowAll] = useState(pdfFiles.map(() => true));
-
-    const toggleShowAll = index => {
-        const newShowAll = [...showAll];
-        newShowAll[index] = !newShowAll[index];
-        setShowAll(newShowAll);
+    const handleSort = (column) => {
+        if (sortColumn === column) {
+            setSortDirection(!sortDirection);
+        } else {
+            setSortColumn(column);
+            setSortDirection(true);
+        }
     };
 
+    const sortedpdfFiles = [...pdfFiles].sort((a, b) => {
+        if (a[sortColumn] < b[sortColumn]) {
+            return sortDirection ? -1 : 1;
+        }
+        if (a[sortColumn] > b[sortColumn]) {
+            return sortDirection ? 1 : -1;
+        }
+        return 0;
+    });
+
+    const downloadedCount = sortedpdfFiles.filter(pdfFile => pdfFile.download_status === "TRUE").length;
+    const notDownloadedCount = sortedpdfFiles.filter(pdfFile => pdfFile.download_status === "FALSE").length;
+
+
     return (
-        <div>
-            <h1>PDF Files</h1>
-            {pdfFiles.map((pdfFile, index) => (
-                    <Card 
-                    key={index} 
-                    style={{ 
-                        width: '100%', 
-                        marginBottom: '10px', 
-                        position: 'relative'
-                    }}
-                >
-                    <div 
-                        style={{ 
-                            position: 'absolute', 
-                            top: '10px', 
-                            right: '10px', 
-                            height: '10px', 
-                            width: '10px', 
-                            borderRadius: '50%', 
-                            backgroundColor: pdfFile.download_status === "TRUE" ? 'lightgreen' : 'red' 
-                        }}
-                    />
-                    <Card.Body>
-                        <Card.Title>{pdfFile.brnumber} : {pdfFile.title}</Card.Title>
-                        {!pdfFile.download_status && <Card.Text>{pdfFile.download_message}</Card.Text>}
-                        <ul>
-                            {Object.entries(pdfFile).map(([key, value], i) => (
-                                showAll[index] ? <li key={i}><strong>{key}:</strong> {value}</li> : null
-                            ))}
-                        </ul>
-                        <div style={{ display: 'flex' }}>
-                            <Button variant="primary" size="sm" style={{ marginRight: '10px' }} onClick={() => toggleShowAll(index)}> {showAll[index] ? 'Hide' : 'Show'}</Button>
-                            <Button variant="primary" size="sm" style={{ marginRight: '10px' }} onClick={() => downloadPdf(pdfFile)}>Download PDF</Button>
-                            <Button variant="primary" size="sm" href={pdfFile.pdf_url} target="_blank">Open PDF URL</Button>
-                        </div>
-                    </Card.Body>
-                </Card>
-            ))}
+        <div className="container">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h1 style={{ textAlign: 'left' }}>PDF files</h1>
+                <p>Successful downloads: {downloadedCount}</p>
+                <p>Failed downloads: {notDownloadedCount}</p>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <table className="table table-sm table-bordered table-striped" style={{ width: '100%' }}>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {pdfFiles.length > 0 && Object.keys(pdfFiles[0])
+                                .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url')
+                                .map((key) => (
+                                    <th key={key}>
+                                        <button
+                                            style={{ width: '100%' }}
+                                            className="btn btn-outline-primary text-left text-nowrap"
+                                            onClick={() => handleSort(key)}
+                                        >
+                                            {key.charAt(0).toUpperCase() + key.slice(1)} {sortColumn === key && (sortDirection ? '↓' : '↑')}
+                                        </button>
+                                    </th>
+                                ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {sortedpdfFiles.map((pdfFile) => (
+                            <tr key={pdfFile.brnumber}>
+                                <td>
+                                    <div
+                                        style={{
+                                            height: '15px',
+                                            width: '15px',
+                                            backgroundColor: pdfFile.download_status === "TRUE" ? '#90ee90' : '#ffcccb',
+                                            borderRadius: '50%',
+                                            display: 'inline-block'
+                                        }}
+                                    />
+                                </td>
+                                {Object.keys(pdfFile)
+                                    .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url')
+                                    .map((key) => (
+                                        <td key={key}>{pdfFile[key]}</td>
+                                    ))}
+                                <td>
+                                    <Button variant="primary" onClick={() => downloadPdf(pdfFile)}>Download</Button>
+                                </td>
+                                <td>
+                                    <Button variant="secondary" onClick={() => {
+                                        try {
+                                            window.open(pdfFile.pdf_url, "_blank")
+                                        } catch (error) {
+                                            setToastMessage('Could not open file, maybe the URL is invalid');
+                                            setShowToast(true);
+                                        }
+                                    }}>Link</Button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <Toast
+                style={{
+                    position: 'absolute',
+                    top: 20,
+                    right: 20,
+                }}
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                delay={3000}
+                autohide
+            >
+                <Toast.Body>{toastMessage}</Toast.Body>
+            </Toast>
         </div>
     );
+
 };
 
 export default PdfFiles;

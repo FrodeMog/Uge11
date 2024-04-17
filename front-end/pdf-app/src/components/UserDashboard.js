@@ -32,7 +32,7 @@ const UserDashboard = () => {
                 border: '1px solid #ccc', 
                 borderRadius: '10px' 
             }}>
-                <PdfFiles /> {/* Use PdfFiles component */}
+                <PdfFiles /> 
             </div>
         </div>
     );
