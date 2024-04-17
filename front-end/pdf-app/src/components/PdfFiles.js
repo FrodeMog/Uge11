@@ -100,7 +100,7 @@ const PdfFiles = () => {
                         <tr>
                             <th></th>
                             {pdfFiles.length > 0 && Object.keys(pdfFiles[0])
-                                .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url')
+                                .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url' && key !== 'file_name')
                                 .map((key) => (
                                     <th key={key}>
                                         <button
@@ -129,7 +129,7 @@ const PdfFiles = () => {
                                     />
                                 </td>
                                 {Object.keys(pdfFile)
-                                    .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url')
+                                    .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url' && key !== 'file_name')
                                     .map((key) => (
                                         <td key={key}>{pdfFile[key]}</td>
                                     ))}
