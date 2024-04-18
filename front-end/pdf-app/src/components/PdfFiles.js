@@ -46,7 +46,7 @@ const PdfFiles = () => {
                         return acc;
                     }, {});
                 }
-                const response = await api.get(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filtersToSend)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
+                const response = await api.get(`/pdfs/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filtersToSend)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
                 setPdfFiles(response.data.pdfs);
                 setTotalPdfs(response.data.total_pdfs);
             } catch (error) {

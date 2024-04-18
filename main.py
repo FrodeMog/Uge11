@@ -21,6 +21,7 @@ from passlib.context import CryptContext
 
 from datetime import datetime, timedelta
 import json
+from json import JSONDecodeError
 from typing import List, Optional, Dict
 import os
 from os import listdir
@@ -170,19 +171,14 @@ async def create_admin_user(user: UserAdmin, current_user: User = Depends(get_cu
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/pdfs", response_model=List[GRIPdfBase])
-async def get_pdfs(start_id: Optional[int] = None, end_id: Optional[int] = None, session: AsyncSession = Depends(get_db)):
-    result = await GRIPdf.get_range(session, start_id, end_id)
-    if result:
-        return result
-    else:
-        raise HTTPException(status_code=404, detail="No PDFs found in the given range")
-    
-@app.get("/pdfs/page", response_model=PdfResponse)
+@app.get("/pdfs", response_model=PdfResponse)
 async def get_pdfs(page: Optional[int] = 1, page_size: Optional[int] = 100, filters: Optional[str] = None, sort_by: Optional[str] = None, sort_order: Optional[str] = 'asc', session: AsyncSession = Depends(get_db)):
     if page < 1:
         raise HTTPException(status_code=400, detail="Page number must be at least 1")
-    filters_dict = json.loads(filters) if filters else None
+    try:
+        filters_dict = json.loads(filters) if filters else None
+    except JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON format in filters")
     if filters_dict:
         for key, value in filters_dict.items():
             if key is None or key == "null":
@@ -196,30 +192,6 @@ async def get_pdfs(page: Optional[int] = 1, page_size: Optional[int] = 100, filt
         return {"pdfs": result, "total_pdfs": total_pdfs}
     else:
         raise HTTPException(status_code=404, detail="No PDFs found in the given range")
-    
-@app.get("/pdfs/brnumber/{brnumber}", response_model=GRIPdfBase)
-async def get_by_brnumber(brnumber: str, session: AsyncSession = Depends(get_db)):
-    result = await GRIPdf.get_by_brnumber(session, brnumber)
-    if result:
-        return result
-    else:
-        raise HTTPException(status_code=404, detail="PDF not found")
-    
-@app.get("/pdfs/id/{id}", response_model=GRIPdfBase)
-async def get_pdf(id: int, session: AsyncSession = Depends(get_db)):
-    result = await GRIPdf.get_by_id(session, id)
-    if result:
-        return result
-    else:
-        raise HTTPException(status_code=404, detail="PDF not found")
-
-@app.get("/pdfs/field_value/{field}/{value}", response_model=List[GRIPdfBase])
-async def get_pdf_by_field_value(field: str, value: str, session: AsyncSession = Depends(get_db)):
-    result = await GRIPdf.get_by_field_value(session, field, value)
-    if result:
-        return result
-    else:
-        raise HTTPException(status_code=404, detail="PDF not found")
     
 @app.get("/pdfs/download/{brnumber}/pdf_file")
 async def get_pdf_file(brnumber: str, response_type: str = "download", current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_db)):
@@ -248,7 +220,7 @@ async def get_pdf_file(brnumber: str, response_type: str = "download", current_u
         raise HTTPException(status_code=404, detail="brnumber not found")
 
 @app.get("/download_metadata_xlsx/")
-async def download_gripdfs_xlsx(file_name: str = "metadata_summary.xlsx"):
+async def download_gripdfs_xlsx(file_name: str = "metadata_summary.xlsx", current_user: User = Depends(get_current_admin_user)):
     folder_location = "pdf-summary"
     os.makedirs(folder_location, exist_ok=True)
     file_location = f"{folder_location}/{file_name}"
@@ -278,12 +250,12 @@ async def upload_files(files: List[UploadFile] = File(...), overwrite: bool = Fa
     return {"detail": "File uploaded successfully"}
 
 @app.get("/list_files/pdf-urls/")
-async def list_files():
+async def list_files(current_user: User = Depends(get_current_admin_user)):
     files = [f for f in listdir('pdf-urls') if isfile(join('pdf-urls', f))]
     return files
 
 @app.get("/list_files/pdf-files/")
-async def list_files():
+async def list_files(current_user: User = Depends(get_current_admin_user)):
     files = [f for f in listdir('pdf-files') if isfile(join('pdf-files', f))]
     return files
 
@@ -346,7 +318,7 @@ async def start_download(background_tasks: BackgroundTasks, start_row: Optional[
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/download_results/{task_id}")
-async def get_download_results(task_id: str, session: AsyncSession = Depends(get_db)):
+async def get_download_results(task_id: str, session: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_admin_user)):
     result = await session.execute(select(RunningTask).where(RunningTask.task_id == task_id))
     task = result.scalars().first()
     if not task:
