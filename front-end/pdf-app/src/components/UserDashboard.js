@@ -13,26 +13,27 @@ const UserDashboard = () => {
     // decode the token to get the username
     const decodedToken = userToken ? jwtDecode(userToken) : null;
     const username = decodedToken ? decodedToken.sub : null;
-    
+
     return (
-        <div style={{ 
-            display: 'grid', 
-            gridTemplateRows: 'auto 1fr', 
-            gridGap: '20px', 
-            padding: '20px', 
-            height: '100vh' 
+        <div style={{
+            display: 'grid',
+            gridTemplateRows: 'auto 1fr',
+            gridGap: '20px',
+            padding: '20px',
+            paddingTop: '70px',
+            height: '100vh'
         }}>
             <div>
                 <h1>Hello {username} </h1>
                 <p>This is your user dashboard</p>
             </div>
-            <div style={{ 
-                overflowY: 'auto', 
-                padding: '20px', 
-                border: '1px solid #ccc', 
-                borderRadius: '10px' 
+            <div style={{
+                overflowY: 'auto',
+                padding: '20px',
+                border: '1px solid #ccc',
+                borderRadius: '10px'
             }}>
-                <PdfFiles /> 
+                <PdfFiles />
             </div>
         </div>
     );
