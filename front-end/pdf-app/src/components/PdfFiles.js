@@ -46,7 +46,6 @@ const PdfFiles = () => {
                         return acc;
                     }, {});
                 }
-
                 const response = await api.get(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filtersToSend)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
                 setPdfFiles(response.data.pdfs);
                 setTotalPdfs(response.data.total_pdfs);
@@ -128,11 +127,10 @@ const PdfFiles = () => {
         return 0;
     });
 
-
     return (
         <div className="container">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h1 style={{ textAlign: 'left' }}>PDF files</h1>
+                <h1 style={{ textAlign: 'left' }}>Total: {totalPdfs} processed pdfs</h1>
                 <div className="d-flex justify-content-between">
                     <DropdownButton id="dropdown-basic-button" title={selectedFilterKey || "Select filter"} className="mr-2">
                         {pdfFiles.length > 0 && Object.keys(pdfFiles[0])
