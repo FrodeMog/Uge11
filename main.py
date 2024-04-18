@@ -324,6 +324,14 @@ def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: s
 async def start_download(background_tasks: BackgroundTasks, start_row: Optional[int] = None, num_rows: Optional[int] = None, filename: str = "GRI_2017_2020.xlsx",  current_user: User = Depends(get_current_admin_user), session: Session = Depends(get_sync_db)):
     if not current_user.is_admin == "True":
         raise HTTPException(status_code=403, detail="User is not an admin")
+    
+    # Get the file extension
+    _, file_extension = os.path.splitext(filename)
+
+    # Check if the file is in a supported format
+    if file_extension not in ['.csv', '.xlsx', '.xlsm', '.xltx', '.xltm']:
+        raise HTTPException(status_code=400, detail=f"Unsupported file format: {file_extension}")
+
     try:
         db_dm = DownloadManager(folder='pdf-files', file_with_urls=f'pdf-urls\\{filename}')
         task_id = str(uuid.uuid4())

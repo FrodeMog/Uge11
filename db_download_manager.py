@@ -2,6 +2,7 @@ import os
 from tqdm import tqdm
 import urllib.request
 import socket
+import openpyxl
 from openpyxl import load_workbook
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
@@ -10,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from db_classes import GRIPdf
 from pathlib import Path
 import time
+import csv
 
 # Set a default timeout for all socket operations
 socket.setdefaulttimeout(5)
@@ -38,20 +40,29 @@ class DownloadManager:
         self.SessionLocal = SessionLocal
 
     def load_data(self, start=0, nrows=None):
-        # Load the workbook
-        workbook = load_workbook(filename=self.file_with_urls, read_only=True)
-
-        # Get the first worksheet
-        worksheet = workbook.active
-
-        # Get the first row (column headers)
-        headers = [cell.value for cell in next(worksheet.iter_rows())]
-
-        # Yield each row in the range
-        for i, row in enumerate(worksheet.iter_rows(min_row=start+2, max_row=start+nrows+1 if nrows else None), start=start):  # start+2 because 1-based index and header row
-            # Yield the row as a dictionary
-            yield dict(zip(headers, (cell.value for cell in row)))
-
+        # Get the file extension
+        _, file_extension = os.path.splitext(self.file_with_urls)
+    
+        # Load the file
+        if file_extension == '.csv':
+            with open(self.file_with_urls, 'r') as f:
+                reader = csv.reader(f)
+                headers = next(reader)
+                for i, row in enumerate(reader):
+                    if i < start:
+                        continue
+                    if nrows is not None and i >= start + nrows:
+                        break
+                    yield dict(zip(headers, row))
+        elif file_extension in ['.xlsx', '.xlsm', '.xltx', '.xltm']:
+            workbook = openpyxl.load_workbook(filename=self.file_with_urls, read_only=True)
+            worksheet = workbook.active
+            headers = [cell.value for cell in next(worksheet.iter_rows())]
+            for i, row in enumerate(worksheet.iter_rows(min_row=start+2, max_row=start+nrows+1 if nrows else None), start=start):
+                yield dict(zip(headers, (cell.value for cell in row)))
+        else:
+            raise ValueError(f"Unsupported file format: {file_extension}")
+        
     def save_download_result(self, row, file_name, download_status, download_message=None, file_folder=None):
         if file_folder is None:
             file_folder = self.folder
