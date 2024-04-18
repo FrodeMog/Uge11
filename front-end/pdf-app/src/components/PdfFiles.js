@@ -38,11 +38,24 @@ const PdfFiles = () => {
                     ...filter
                 };
                 const response = await api.get(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filters)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
-                console.log(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filters)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
                 setPdfFiles(response.data.pdfs);
                 setTotalPdfs(response.data.total_pdfs);
             } catch (error) {
-                console.error("Failed to fetch PDF files", error);
+                console.error('Failed to fetch resource:', error);
+                let errorMessage = 'Failed to fetch resource.';
+                if (error.response) {
+                    if (error.response.data && error.response.data.detail) {
+                        errorMessage = typeof error.response.data.detail === 'object'
+                            ? JSON.stringify(error.response.data.detail)
+                            : error.response.data.detail;
+                    } else if (error.response.status === 404) {
+                        errorMessage = 'Resource not found.';
+                    } else if (error.response.status === 401) {
+                        errorMessage = 'Unauthorized.';
+                    }
+                }
+                setToastMessage(errorMessage);
+                setShowToast(true);
             }
         };
         fetchPdfFiles();
@@ -67,14 +80,14 @@ const PdfFiles = () => {
             console.error('Failed to fetch resource:', error);
             let errorMessage = 'Failed to fetch resource.';
             if (error.response) {
-                if (error.response.status === 404) {
-                    errorMessage = 'Resource not found.';
-                } else if (error.response.status === 401) {
-                    errorMessage = 'Unauthorized.';
-                } else if (error.response.data && error.response.data.detail) {
+                if (error.response.data && error.response.data.detail) {
                     errorMessage = typeof error.response.data.detail === 'object'
                         ? JSON.stringify(error.response.data.detail)
                         : error.response.data.detail;
+                } else if (error.response.status === 404) {
+                    errorMessage = 'Resource not found.';
+                } else if (error.response.status === 401) {
+                    errorMessage = 'Unauthorized.';
                 }
             }
             setToastMessage(errorMessage);
@@ -111,33 +124,32 @@ const PdfFiles = () => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h1 style={{ textAlign: 'left' }}>PDF files</h1>
                 <div className="d-flex justify-content-between">
-                    <div className="col-3 p-0">
-                        <DropdownButton id="dropdown-basic-button" title={selectedFilterKey || "Select filter"}>
-                            {pdfFiles.length > 0 && Object.keys(pdfFiles[0])
-                                .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url' && key !== 'file_name')
-                                .map(key => (
-                                    <Dropdown.Item key={key} onClick={() => setSelectedFilterKey(key)}>
-                                        {key}
-                                    </Dropdown.Item>
-                                ))
-                            }
-                        </DropdownButton>
+                    <DropdownButton id="dropdown-basic-button" title={selectedFilterKey || "Select filter"} className="mr-2">
+                        {pdfFiles.length > 0 && Object.keys(pdfFiles[0])
+                            .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url' && key !== 'file_name')
+                            .map(key => (
+                                <Dropdown.Item key={key} onClick={() => setSelectedFilterKey(key)}>
+                                    {key}
+                                </Dropdown.Item>
+                            ))
+                        }
+                    </DropdownButton>
+                    <div className="p-0" style={{ width: '400px' }}>
+                        <form onSubmit={(e) => { e.preventDefault(); setFilter({ [selectedFilterKey]: selectedFilterValue }); }}>
+
+                            <InputGroup className="mb-3">
+                                <FormControl
+                                    placeholder="Filter value"
+                                    aria-label="Filter value"
+                                    aria-describedby="basic-addon2"
+                                    value={selectedFilterValue}
+                                    onChange={e => setSelectedFilterValue(e.target.value)}
+                                />
+                            </InputGroup>
+                        </form>
                     </div>
-                    <div className="col-6 p-0">
-                        <InputGroup className="mb-3">
-                            <FormControl
-                                placeholder="Filter value"
-                                aria-label="Filter value"
-                                aria-describedby="basic-addon2"
-                                value={selectedFilterValue}
-                                onChange={e => setSelectedFilterValue(e.target.value)}
-                            />
-                        </InputGroup>
-                    </div>
-                    <div className="col-3 p-0 d-flex justify-content-between">
-                        <Button onClick={() => setFilter({ [selectedFilterKey]: selectedFilterValue })} className="mr-1">Submit</Button>
-                        <Button onClick={() => { setSelectedFilterKey(null); setSelectedFilterValue(''); setFilter({}); }} className="ml-1" style={{ whiteSpace: 'nowrap' }}>Show all</Button>
-                    </div>
+                    <Button onClick={() => setFilter({ [selectedFilterKey]: selectedFilterValue })} className="mr-2">Submit</Button>
+                    <Button onClick={() => { setSelectedFilterKey(null); setSelectedFilterValue(''); setFilter({}); }} style={{ whiteSpace: 'nowrap' }}>Show all</Button>
                 </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
