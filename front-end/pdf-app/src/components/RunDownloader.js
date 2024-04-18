@@ -12,7 +12,25 @@ const RunDownloader = () => {
 
     const [files, setFiles] = useState([]);
     const [formValues, setFormValues] = useState({ startRow: 0, numRows: 0, selectedFile: "" });
-    const [taskIds, setTaskIds] = useState([]);
+    const [taskIds, setTaskIds] = useState(() => {
+        const storedTaskIds = JSON.parse(localStorage.getItem('taskIds'));
+        return storedTaskIds ? storedTaskIds : [];
+    });
+
+    // When taskIds changes, save it to local storage
+    useEffect(() => {
+        console.log('Saving taskIds to local storage:', taskIds);
+        localStorage.setItem('taskIds', JSON.stringify(taskIds));
+    }, [taskIds]);
+
+    // When the component mounts, retrieve taskIds from local storage
+    useEffect(() => {
+        const storedTaskIds = JSON.parse(localStorage.getItem('taskIds'));
+        console.log('Retrieved taskIds from local storage:', storedTaskIds);
+        if (storedTaskIds) {
+            setTaskIds(storedTaskIds);
+        }
+    }, []);
 
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
@@ -127,7 +145,7 @@ const RunDownloader = () => {
                     </div>
                     <Card style={{ marginTop: '20px' }}>
                         <Card.Body>
-                            {formValues.numRows !== 0 && taskIds.map(taskId => (
+                            {taskIds.map(taskId => (
                                 <DownloadProgress
                                     key={taskId}
                                     taskId={taskId}
