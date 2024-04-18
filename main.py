@@ -239,6 +239,26 @@ async def download_gripdfs_xlsx(file_name: str = "metadata_summary.xlsx", curren
         headers={"Content-Disposition": f"attachment; filename={file_name}"}
     )
 
+@app.get("/download_metadata_csv/")
+async def download_gripdfs_csv(file_name: str = "metadata_summary.csv", current_user: User = Depends(get_current_admin_user)):
+    folder_location = "pdf-summary"
+    os.makedirs(folder_location, exist_ok=True)
+    file_location = f"{folder_location}/{file_name}"
+    
+    # Create the CSV file
+    db_utils.extract_table_as_csv(GRIPdf, file_name, folder_location)
+    
+    # Check if the file was created successfully
+    if not exists(file_location):
+        raise HTTPException(status_code=500, detail="Failed to create CSV file")
+    
+    # Return the file as a download
+    return FileResponse(
+        path=file_location,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={file_name}"}
+    )
+
 @app.post("/upload_files/pdf-urls/{overwrite}")
 async def upload_files(files: List[UploadFile] = File(...), overwrite: bool = False, current_user: User = Depends(get_current_admin_user)):
     for file in files:
