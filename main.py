@@ -262,9 +262,14 @@ async def download_gripdfs_csv(file_name: str = "metadata_summary.csv", current_
 @app.post("/upload_files/pdf-urls/{overwrite}")
 async def upload_files(files: List[UploadFile] = File(...), overwrite: bool = False, current_user: User = Depends(get_current_admin_user)):
     for file in files:
+        file_extension = file.filename.split('.')[-1]
+        if file_extension not in ['xlsx', 'xls']:
+            raise HTTPException(status_code=400, detail=f"Invalid file type. Only Excel files are allowed.")
+        
         file_location = f"pdf-urls/{file.filename}"
         if exists(file_location) and not overwrite:
             raise HTTPException(status_code=400, detail=f"File {file.filename} already exists.")
+        
         with open(file_location, "wb+") as file_object:
             file_object.write(file.file.read())
     return {"detail": "File uploaded successfully"}
