@@ -16,6 +16,7 @@ class RunningTask(BaseModel):
     task_id: str
     name: str
     status: str
+    running_file: str
 
     start_time: datetime
     end_time: datetime

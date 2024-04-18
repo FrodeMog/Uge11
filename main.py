@@ -332,12 +332,18 @@ async def start_download(background_tasks: BackgroundTasks, start_row: Optional[
     if file_extension not in ['.csv', '.xlsx', '.xlsm', '.xltx', '.xltm']:
         raise HTTPException(status_code=400, detail=f"Unsupported file format: {file_extension}")
 
+    # Check if there's already a running task with the same filename
+    running_task = session.query(RunningTask).filter(RunningTask.running_file == filename, RunningTask.status == "running").first()
+    if running_task:
+        raise HTTPException(status_code=400, detail="Task already running")
+
     try:
         db_dm = DownloadManager(folder='pdf-files', file_with_urls=f'pdf-urls\\{filename}')
         task_id = str(uuid.uuid4())
         new_task = RunningTask(
             task_id=task_id,
             name="Download Task",
+            running_file=filename,
             status="running",
             start_time=datetime.now(),
             start_row=start_row if start_row else 0,

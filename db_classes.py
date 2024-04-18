@@ -201,6 +201,7 @@ class RunningTask(BaseModel):
     task_id = Column(String(36), primary_key=True)  # UUIDs 
     name = Column(String(50), nullable=False)
     status = Column(String(10), nullable=False)
+    running_file = Column(Text, nullable=False)
     start_time = Column(DateTime, default=datetime.now)
     end_time = Column(DateTime, nullable=True)
 
