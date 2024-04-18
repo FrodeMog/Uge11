@@ -38,7 +38,7 @@ Status | Feature | Comment
 ✅| Specified folder-path storage of pdf-files
 Extras:
 ✅| FastAPI in front-end: Login Page for remote access of files
-⬜| FastAPI in front-end: Admin operation to run the download manager
+✅| FastAPI in front-end: Admin operation to run the download manager
 
 ##### Basic requirements - Time estimates
 Status | Requirement | Time | Comment
@@ -71,6 +71,7 @@ Day 4|  | 6h | Up to 2h extra
 ✅| Front-end: advanced search download page | 3h | Day 4
 ⬜| Front-end: Admin can register new users | 2h | Day 4
 Day 5|  | 6h | Up to 2h extra
+✅| Front-end: advanced admin page | 3h | Day 5
 ⬜| Tests: unit-tests / manual-tests | 2h | Day 5
 ⬜| Easy launch and setup: launch script, etc | 2h | Day 5
 ⬜| Documentation: Readme, Setup and charts | 2h | Day 5
