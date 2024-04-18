@@ -304,8 +304,8 @@ def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: s
     session.commit()
 
 #Have use sync session here, async session freezes the api
-@app.post("/start_download/{start_row}/{num_rows}/")
-async def start_download(start_row: int, num_rows: int, background_tasks: BackgroundTasks, filename: str = "GRI_2017_2020.xlsx", current_user: User = Depends(get_current_admin_user), session: Session = Depends(get_sync_db)):
+@app.post("/start_download_manager/")
+async def start_download(background_tasks: BackgroundTasks, start_row: int = 0, num_rows: int = 0, filename: str = "GRI_2017_2020.xlsx",  current_user: User = Depends(get_current_admin_user), session: Session = Depends(get_sync_db)):
     if not current_user.is_admin == "True":
         raise HTTPException(status_code=403, detail="User is not an admin")
     try:
