@@ -225,7 +225,7 @@ const PdfFiles = () => {
             <Toast
                 style={{
                     position: 'absolute',
-                    top: 20,
+                    top: 100,
                     right: 20,
                 }}
                 show={showToast}

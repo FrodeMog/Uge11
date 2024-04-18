@@ -184,6 +184,11 @@ async def get_pdfs(page: Optional[int] = 1, page_size: Optional[int] = 100, filt
         raise HTTPException(status_code=400, detail="Page number must be at least 1")
     filters_dict = json.loads(filters) if filters else None
     if filters_dict:
+        for key, value in filters_dict.items():
+            if key is None or key == "null":
+                raise HTTPException(status_code=400, detail=f"Filter key cannot be None")
+            if value is None:
+                raise HTTPException(status_code=400, detail=f"Filter value for {key} cannot be None")
         filters_dict = {key: {"field": key, "value": value} for key, value in filters_dict.items()}
     result = await GRIPdf.get_range(session, page, page_size, filters_dict, sort_by, sort_order)
     total_pdfs = await GRIPdf.get_count(session, filters_dict)
