@@ -64,7 +64,7 @@ const RunDownloader = () => {
                     },
                 })
                     .then(response => {
-                        const { num_rows, processed_rows, results, status, start_time, running_time, start_row } = response.data;
+                        const { num_rows, processed_rows, results, status, start_time, running_time, start_row, running_file } = response.data;
                         const progress = (processed_rows / num_rows) * 100;
                         setDownloadProgress({
                             progress,
@@ -74,7 +74,8 @@ const RunDownloader = () => {
                             running_time,
                             start_row,
                             num_rows,
-                            processed_rows
+                            processed_rows,
+                            running_file
                         });
                     })
                     .catch(error => {
@@ -179,6 +180,10 @@ const RunDownloader = () => {
                                         <tr>
                                             <td>Status:</td>
                                             <td>{downloadProgress.progress === 100 && downloadProgress.status === 'running' ? 'finalizing' : downloadProgress.status}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Running file:</td>
+                                            <td>{downloadProgress.running_file}</td>
                                         </tr>
                                         <tr>
                                             <td>Successful:</td>
