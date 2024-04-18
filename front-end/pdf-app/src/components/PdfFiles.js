@@ -128,122 +128,126 @@ const PdfFiles = () => {
     });
 
     return (
-        <div className="container">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h1 style={{ textAlign: 'left' }}>Total: {totalPdfs} processed pdfs</h1>
-                <div className="d-flex justify-content-between">
-                    <DropdownButton id="dropdown-basic-button" title={selectedFilterKey || "Select filter"} className="mr-2">
-                        {pdfFiles.length > 0 && Object.keys(pdfFiles[0])
-                            .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url' && key !== 'file_name')
-                            .map(key => (
-                                <Dropdown.Item key={key} onClick={() => setSelectedFilterKey(key)}>
-                                    {key}
-                                </Dropdown.Item>
-                            ))
-                        }
-                    </DropdownButton>
-                    <div className="p-0" style={{ width: '400px' }}>
-                        <form onSubmit={(e) => { e.preventDefault(); setFilter({ [selectedFilterKey]: selectedFilterValue }); }}>
-
-                            <InputGroup className="mb-3">
-                                <FormControl
-                                    placeholder="Filter value"
-                                    aria-label="Filter value"
-                                    aria-describedby="basic-addon2"
-                                    value={selectedFilterValue}
-                                    onChange={e => setSelectedFilterValue(e.target.value)}
-                                />
-                            </InputGroup>
-                        </form>
-                    </div>
-                    <Button onClick={() => setFilter({ [selectedFilterKey]: selectedFilterValue })} className="mr-2">Submit</Button>
-                    <Button onClick={() => { setSelectedFilterKey(null); setSelectedFilterValue(''); setFilter({}); }} style={{ whiteSpace: 'nowrap' }}>Show all</Button>
-                </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <Pagination>
-                    <Pagination.First onClick={() => handlePageChange(1)} />
-                    {pageNumbers
-                        .slice(Math.max(0, currentPage - 5), currentPage + 5)
-                        .map((number) => (
-                            <Pagination.Item key={number} active={number === currentPage} onClick={() => handlePageChange(number)}>
-                                {number}
-                            </Pagination.Item>
-                        ))}
-                    <Pagination.Last onClick={() => handlePageChange(pageNumbers.length)} />
-                </Pagination>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <table className="table table-sm table-bordered table-striped" style={{ width: '100%' }}>
-                    <thead>
-                        <tr>
-                            <th></th>
+        <Card>
+            <Card.Body>
+                <Card.Title></Card.Title>
+                <Card.Text></Card.Text>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h1 style={{ textAlign: 'left' }}>Total: {totalPdfs} processed pdfs</h1>
+                    <div className="d-flex justify-content-between">
+                        <DropdownButton id="dropdown-basic-button" title={selectedFilterKey || "Select filter"} className="mr-2">
                             {pdfFiles.length > 0 && Object.keys(pdfFiles[0])
                                 .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url' && key !== 'file_name')
-                                .map((key) => (
-                                    <th key={key}>
-                                        <button
-                                            style={{ width: '100%' }}
-                                            className="btn btn-outline-primary text-left text-nowrap"
-                                            onClick={() => handleSort(key)}
-                                        >
-                                            {key.charAt(0).toUpperCase() + key.slice(1)} {sortColumn === key && (sortDirection ? '↓' : '↑')}
-                                        </button>
-                                    </th>
-                                ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {sortedpdfFiles.map((pdfFile) => (
-                            <tr key={pdfFile.brnumber}>
-                                <td>
-                                    <div
-                                        style={{
-                                            height: '15px',
-                                            width: '15px',
-                                            backgroundColor: pdfFile.download_status === "TRUE" ? '#90ee90' : '#ffcccb',
-                                            borderRadius: '50%',
-                                            display: 'inline-block'
-                                        }}
+                                .map(key => (
+                                    <Dropdown.Item key={key} onClick={() => setSelectedFilterKey(key)}>
+                                        {key}
+                                    </Dropdown.Item>
+                                ))
+                            }
+                        </DropdownButton>
+                        <div className="p-0" style={{ width: '400px' }}>
+                            <form onSubmit={(e) => { e.preventDefault(); setFilter({ [selectedFilterKey]: selectedFilterValue }); }}>
+
+                                <InputGroup className="mb-3">
+                                    <FormControl
+                                        placeholder="Filter value"
+                                        aria-label="Filter value"
+                                        aria-describedby="basic-addon2"
+                                        value={selectedFilterValue}
+                                        onChange={e => setSelectedFilterValue(e.target.value)}
                                     />
-                                </td>
-                                {Object.keys(pdfFile)
+                                </InputGroup>
+                            </form>
+                        </div>
+                        <Button onClick={() => setFilter({ [selectedFilterKey]: selectedFilterValue })} className="mr-2">Submit</Button>
+                        <Button onClick={() => { setSelectedFilterKey(null); setSelectedFilterValue(''); setFilter({}); }} style={{ whiteSpace: 'nowrap' }}>Show all</Button>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <Pagination>
+                        <Pagination.First onClick={() => handlePageChange(1)} />
+                        {pageNumbers
+                            .slice(Math.max(0, currentPage - 5), currentPage + 5)
+                            .map((number) => (
+                                <Pagination.Item key={number} active={number === currentPage} onClick={() => handlePageChange(number)}>
+                                    {number}
+                                </Pagination.Item>
+                            ))}
+                        <Pagination.Last onClick={() => handlePageChange(pageNumbers.length)} />
+                    </Pagination>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <table className="table table-sm table-bordered table-striped" style={{ width: '100%' }}>
+                        <thead>
+                            <tr>
+                                <th></th>
+                                {pdfFiles.length > 0 && Object.keys(pdfFiles[0])
                                     .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url' && key !== 'file_name')
                                     .map((key) => (
-                                        <td key={key}>{pdfFile[key]}</td>
+                                        <th key={key}>
+                                            <button
+                                                style={{ width: '100%' }}
+                                                className="btn btn-outline-primary text-left text-nowrap"
+                                                onClick={() => handleSort(key)}
+                                            >
+                                                {key.charAt(0).toUpperCase() + key.slice(1)} {sortColumn === key && (sortDirection ? '↓' : '↑')}
+                                            </button>
+                                        </th>
                                     ))}
-                                <td>
-                                    <Button variant="primary" onClick={() => downloadPdf(pdfFile)}>Download</Button>
-                                </td>
-                                <td>
-                                    <Button variant="secondary" onClick={() => {
-                                        try {
-                                            window.open(pdfFile.pdf_url, "_blank")
-                                        } catch (error) {
-                                            setToastMessage('Could not open file, maybe the URL is invalid');
-                                            setShowToast(true);
-                                        }
-                                    }}>Link</Button>
-                                </td>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            <Toast
-                style={{
-                    position: 'absolute',
-                    top: 100,
-                    right: 20,
-                }}
-                show={showToast}
-                onClose={() => setShowToast(false)}
-                delay={3000}
-                autohide
-            >
-                <Toast.Body>{toastMessage}</Toast.Body>
-            </Toast>
-        </div >
+                        </thead>
+                        <tbody>
+                            {sortedpdfFiles.map((pdfFile) => (
+                                <tr key={pdfFile.brnumber}>
+                                    <td>
+                                        <div
+                                            style={{
+                                                height: '15px',
+                                                width: '15px',
+                                                backgroundColor: pdfFile.download_status === "TRUE" ? '#90ee90' : '#ffcccb',
+                                                borderRadius: '50%',
+                                                display: 'inline-block'
+                                            }}
+                                        />
+                                    </td>
+                                    {Object.keys(pdfFile)
+                                        .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url' && key !== 'file_name')
+                                        .map((key) => (
+                                            <td key={key}>{pdfFile[key]}</td>
+                                        ))}
+                                    <td>
+                                        <Button variant="primary" onClick={() => downloadPdf(pdfFile)}>Download</Button>
+                                    </td>
+                                    <td>
+                                        <Button variant="secondary" onClick={() => {
+                                            try {
+                                                window.open(pdfFile.pdf_url, "_blank")
+                                            } catch (error) {
+                                                setToastMessage('Could not open file, maybe the URL is invalid');
+                                                setShowToast(true);
+                                            }
+                                        }}>Link</Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                <Toast
+                    style={{
+                        position: 'absolute',
+                        top: 100,
+                        right: 20,
+                    }}
+                    show={showToast}
+                    onClose={() => setShowToast(false)}
+                    delay={3000}
+                    autohide
+                >
+                    <Toast.Body>{toastMessage}</Toast.Body>
+                </Toast>
+            </Card.Body>
+        </Card>
     );
 
 };
