@@ -5,7 +5,7 @@ import { AuthContext } from '../contexts/auth.js';
 function UserProtectedRoute({ children }) {
     const { userToken, handleContextLogin } = useContext(AuthContext);
 
-    // Check if the userToken is an admin
+    // Check if the userToken is present
     if (!userToken) {
         // User not logged in, redirect to login page
         return <Navigate to="/" />;
