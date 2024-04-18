@@ -3,7 +3,7 @@ import api from '../api/api.js';
 import { AuthContext } from '../contexts/auth.js';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { Card, Button, Form, InputGroup, FormControl, DropdownButton, Dropdown, Row, Col } from 'react-bootstrap';
+import { Card, Button, Form, InputGroup, FormControl, DropdownButton, Dropdown, Row, Col, ProgressBar } from 'react-bootstrap';
 
 const RunDownloader = () => {
     const navigate = useNavigate();
@@ -13,6 +13,7 @@ const RunDownloader = () => {
     const [files, setFiles] = useState([]);
     const [formValues, setFormValues] = useState({ startRow: 0, numRows: 0, selectedFile: "" });
     const [taskId, setTaskId] = useState(null);
+    const [downloadProgress, setDownloadProgress] = useState(null);
 
     useEffect(() => {
         try {
@@ -33,6 +34,43 @@ const RunDownloader = () => {
         }
     }, []);
 
+    useEffect(() => {
+        let interval = null;
+
+        if (taskId && (!downloadProgress || downloadProgress.status !== 'finished')) {
+            interval = setInterval(() => {
+                api.get(`/download_results/${taskId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                    },
+                })
+                    .then(response => {
+                        const { num_rows, processed_rows, results, status, start_time, running_time, start_row } = response.data;
+                        const progress = (processed_rows / num_rows) * 100;
+                        setDownloadProgress({
+                            progress,
+                            results,
+                            status,
+                            start_time,
+                            running_time,
+                            start_row,
+                            num_rows,
+                            processed_rows
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching download results:', error);
+                    });
+            }, 1000);
+        }
+
+        return () => {
+            if (interval) {
+                clearInterval(interval);
+            }
+        };
+    }, [taskId, downloadProgress]);
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -52,6 +90,7 @@ const RunDownloader = () => {
 
             console.log(response.data);
             setTaskId(response.data.task_id);
+            setDownloadProgress(null);  // Reset downloadProgress when a new download is started
         } catch (error) {
             console.error('Error starting download manager:', error);
         }
@@ -82,6 +121,20 @@ const RunDownloader = () => {
                     </Form.Control>
                     <Button variant="primary" type="submit">Start Download</Button>
                 </Form>
+                {downloadProgress && formValues.numRows !== 0 && (
+                    <>
+                        <ProgressBar
+                            now={downloadProgress.progress}
+                            label={`${downloadProgress.progress.toFixed(2)}%`}
+                            variant={downloadProgress.status === 'running' ? 'warning' : 'success'}
+                        />
+                        <p>Status: {downloadProgress.progress === 100 && downloadProgress.status === 'running' ? 'finalizing' : downloadProgress.status}</p>
+                        <p>Successful: {downloadProgress.results.successful}</p>
+                        <p>Already downloaded: {downloadProgress.results.already_downloaded}</p>
+                        <p>Failed: {downloadProgress.results.failed}</p>
+                        <p>Processed rows: {downloadProgress.processed_rows} out of {downloadProgress.num_rows}</p>
+                    </>
+                )}
             </Card.Body>
         </Card>
     );
