@@ -41,7 +41,7 @@ const UploadExcel = () => {
             console.log('File uploaded successfully');
             setToastMessage(`File: ${selectedFile.name} uploaded successfully`);
             setShowToast(true);
-        }  catch (error) {
+        } catch (error) {
             console.error('Failed to fetch resource:', error);
             let errorMessage = 'Failed to fetch resource.';
             if (error.response) {
@@ -61,30 +61,32 @@ const UploadExcel = () => {
     };
 
     return (
-        <div>
-            <h2>Upload Excel</h2>
-            <p>Click the button below to upload an Excel file</p>
-            <Form>
-                <Form.Control type="file" id="custom-file" label="Choose file" onChange={handleFileChange} />
-                <Form.Check type="checkbox" label="Overwrite existing file" onChange={handleOverwriteChange} />
-                <Button variant="primary" onClick={handleUpload}>
-                    Upload
-                </Button>
-            </Form>
-            <Toast
-                style={{
-                    position: 'absolute',
-                    top: 100,
-                    right: 20,
-                }}
-                show={showToast}
-                onClose={() => setShowToast(false)}
-                delay={3000}
-                autohide
-            >
-                <Toast.Body>{toastMessage}</Toast.Body>
-            </Toast>
-        </div>
+        <Card>
+            <Card.Body>
+                <Card.Title>Upload file for downloader</Card.Title>
+                <Card.Text> Upload file with mandatory rows: 'BRnum', 'pdf_url' as file with extension: '.csv', '.xlsx', '.xlsm', '.xltx', '.xltm'</Card.Text>
+                <Form>
+                    <Form.Control type="file" id="custom-file" label="Choose file" onChange={handleFileChange} />
+                    <Form.Check type="checkbox" label="Overwrite existing file" onChange={handleOverwriteChange} />
+                    <Button variant="primary" onClick={handleUpload}>
+                        Upload
+                    </Button>
+                </Form>
+                <Toast
+                    style={{
+                        position: 'absolute',
+                        top: 100,
+                        right: 20,
+                    }}
+                    show={showToast}
+                    onClose={() => setShowToast(false)}
+                    delay={3000}
+                    autohide
+                >
+                    <Toast.Body>{toastMessage}</Toast.Body>
+                </Toast>
+            </Card.Body>
+        </Card>
 
     );
 };

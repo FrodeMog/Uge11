@@ -2,8 +2,8 @@ import React, { useState, useContext } from 'react';
 import { AuthContext } from '../contexts/auth.js';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import DownloadMetadata from './DownloadMetadata'; 
-import RunDownloader from './RunDownloader'; 
+import DownloadMetadata from './DownloadMetadata';
+import RunDownloader from './RunDownloader';
 import UploadExcel from './UploadExcel';
 
 
@@ -31,6 +31,9 @@ const AdminDashboard = () => {
                 <p>This is your admin dashboard</p>
             </div>
             <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr',
+                gap: '20px',
                 overflowY: 'auto',
                 padding: '20px',
                 border: '1px solid #ccc',

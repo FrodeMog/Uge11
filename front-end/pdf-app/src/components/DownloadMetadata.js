@@ -29,16 +29,18 @@ const DownloadMetadata = () => {
     };
 
     return (
-        <div>
-            <h2>Download Metadata</h2>
-            <p>Click the button below to download the metadata</p>
-            <Button variant="primary" onClick={() => downloadFile('xlsx')}>
-                Download Metadata (xlsx)
-            </Button>
-            <Button variant="primary" onClick={() => downloadFile('csv')}>
-                Download Metadata (csv)
-            </Button>
-        </div>
+        <Card>
+            <Card.Body>
+                <Card.Title>Download metadata of processed rows</Card.Title>
+                <Card.Text>Click to download as .xlsx or .csv</Card.Text>
+                <Button variant="primary" onClick={() => downloadFile('xlsx')} style={{ marginRight: '10px' }}>
+                    Download Metadata (xlsx)
+                </Button>
+                <Button variant="primary" onClick={() => downloadFile('csv')}>
+                    Download Metadata (csv)
+                </Button>
+            </Card.Body>
+        </Card>
     );
 };
 
