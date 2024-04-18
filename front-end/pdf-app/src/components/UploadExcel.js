@@ -75,8 +75,9 @@ const UploadExcel = () => {
                 <Toast
                     style={{
                         position: 'absolute',
-                        top: 100,
-                        right: 20,
+                        top: '30%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
                     }}
                     show={showToast}
                     onClose={() => setShowToast(false)}
