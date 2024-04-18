@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, Enum, desc, delete, update, inspect
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, Enum, desc, delete, update, inspect, func, and_
 from sqlalchemy.orm import declarative_base, validates
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound, IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,6 +8,8 @@ from sqlalchemy.future import select
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from functools import wraps
+from typing import Optional, Dict
+from db_pydantic_classes import Filter
 
 def error_handler(func):
     @wraps(func)
@@ -167,6 +169,27 @@ class BaseModel(Base):
             raise HTTPException(status_code=404, detail=f"No {cls.__name__} found")
         return result
     
+    @classmethod
+    @error_handler
+    async def get_range(cls, session, page, page_size, filters_dict):
+        query = select(cls)
+        if filters_dict:
+            for key, value in filters_dict.items():
+                query = query.where(getattr(cls, key) == value['value'])
+        query = query.offset((page - 1) * page_size).limit(page_size)
+        result = await session.execute(query)
+        return result.scalars().all()
+    
+    @classmethod
+    @error_handler
+    async def get_count(cls, session, filters_dict):
+        query = select(func.count(cls.id))
+        if filters_dict:
+            for key, value in filters_dict.items():
+                query = query.where(getattr(cls, key) == value['value'])
+        result = await session.execute(query)
+        return result.scalar()
+        
 class RunningTask(BaseModel):
     __tablename__ = 'running_tasks'
 

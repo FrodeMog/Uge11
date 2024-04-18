@@ -4,6 +4,7 @@ import { AuthContext } from '../contexts/auth.js';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import Toast from 'react-bootstrap/Toast';
+import Pagination from 'react-bootstrap/Pagination';
 import { Card, Button, Form, InputGroup, FormControl, DropdownButton, Dropdown, Row, Col } from 'react-bootstrap';
 
 const PdfFiles = () => {
@@ -18,17 +19,27 @@ const PdfFiles = () => {
     const [sortColumn, setSortColumn] = useState(null);
     const [sortDirection, setSortDirection] = useState(true); // true for ascending, false for descending
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+    const [totalPdfs, setTotalPdfs] = useState(0);
+    const totalPages = Math.ceil(totalPdfs / pageSize);
+    const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+    const [filterDownloadStatus, setFilterDownloadStatus] = useState(null);
+
     useEffect(() => {
         const fetchPdfFiles = async () => {
             try {
-                const response = await api.get('/pdfs');
-                setPdfFiles(response.data);
+                const filters = filterDownloadStatus !== null ? { download_status: filterDownloadStatus } : {};
+                const response = await api.get(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filters)}`);
+                console.log(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filters)}`);
+                setPdfFiles(response.data.pdfs);
+                setTotalPdfs(response.data.total_pdfs);
             } catch (error) {
-                console.error(error);
+                console.error("Failed to fetch PDF files", error);
             }
-        }
+        };
         fetchPdfFiles();
-    }, []);
+    }, [currentPage, pageSize, filterDownloadStatus]);
 
     const downloadPdf = async (pdfFile) => {
         try {
@@ -64,6 +75,10 @@ const PdfFiles = () => {
         }
     };
 
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     const handleSort = (column) => {
         if (sortColumn === column) {
             setSortDirection(!sortDirection);
@@ -93,6 +108,28 @@ const PdfFiles = () => {
                 <h1 style={{ textAlign: 'left' }}>PDF files</h1>
                 <p>Successful downloads: {downloadedCount}</p>
                 <p>Failed downloads: {notDownloadedCount}</p>
+                <Button variant={filterDownloadStatus === null ? "primary" : "light"} onClick={() => setFilterDownloadStatus(null)}>
+                    Show all
+                </Button>
+                <Button variant={filterDownloadStatus === "TRUE" ? "primary" : "light"} onClick={() => setFilterDownloadStatus("TRUE")}>
+                    Show successful
+                </Button>
+                <Button variant={filterDownloadStatus === "FALSE" ? "primary" : "light"} onClick={() => setFilterDownloadStatus("FALSE")}>
+                    Show failed
+                </Button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <Pagination>
+                    <Pagination.First onClick={() => handlePageChange(1)} />
+                    {pageNumbers
+                        .slice(Math.max(0, currentPage - 5), currentPage + 5)
+                        .map((number) => (
+                            <Pagination.Item key={number} active={number === currentPage} onClick={() => handlePageChange(number)}>
+                                {number}
+                            </Pagination.Item>
+                        ))}
+                    <Pagination.Last onClick={() => handlePageChange(pageNumbers.length)} />
+                </Pagination>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <table className="table table-sm table-bordered table-striped" style={{ width: '100%' }}>

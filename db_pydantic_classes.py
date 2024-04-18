@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from enum import Enum
 from datetime import datetime
+from typing import List
 
 
 class Token(BaseModel):
@@ -48,6 +49,14 @@ class GRIPdfBase(BaseModel):
 
     class Config:
         orm_mode = True
+
+class PdfResponse(BaseModel):
+    pdfs: List[GRIPdfBase]
+    total_pdfs: int
+
+class Filter(BaseModel):
+    field: str
+    value: str
 
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, regex="^[A-Za-z0-9_]+$")

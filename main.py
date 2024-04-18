@@ -21,7 +21,7 @@ from passlib.context import CryptContext
 
 from datetime import datetime, timedelta
 import json
-from typing import List
+from typing import List, Optional, Dict
 import os
 from os import listdir
 from os.path import isfile, join, exists
@@ -169,14 +169,29 @@ async def create_admin_user(user: UserAdmin, current_user: User = Depends(get_cu
         return UserAdminResponse.from_orm(result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @app.get("/pdfs", response_model=List[GRIPdfBase])
-async def get_pdfs(session: AsyncSession = Depends(get_db)):
-    result = await GRIPdf.get_all(session)
+async def get_pdfs(start_id: Optional[int] = None, end_id: Optional[int] = None, session: AsyncSession = Depends(get_db)):
+    result = await GRIPdf.get_range(session, start_id, end_id)
     if result:
         return result
     else:
-        raise HTTPException(status_code=404, detail="No PDFs found")
+        raise HTTPException(status_code=404, detail="No PDFs found in the given range")
+    
+
+@app.get("/pdfs/page", response_model=PdfResponse)
+async def get_pdfs(page: Optional[int] = 1, page_size: Optional[int] = 100, filters: Optional[str] = None, session: AsyncSession = Depends(get_db)):
+    if page < 1:
+        raise HTTPException(status_code=400, detail="Page number must be at least 1")
+    filters_dict = json.loads(filters) if filters else None
+    if filters_dict:
+        filters_dict = {key: {"field": key, "value": value} for key, value in filters_dict.items()}
+    result = await GRIPdf.get_range(session, page, page_size, filters_dict)
+    total_pdfs = await GRIPdf.get_count(session, filters_dict)
+    if result:
+        return {"pdfs": result, "total_pdfs": total_pdfs}
+    else:
+        raise HTTPException(status_code=404, detail="No PDFs found in the given range")
     
 @app.get("/pdfs/brnumber/{brnumber}", response_model=GRIPdfBase)
 async def get_by_brnumber(brnumber: str, session: AsyncSession = Depends(get_db)):
@@ -305,7 +320,7 @@ def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: s
 
 #Have use sync session here, async session freezes the api
 @app.post("/start_download_manager/")
-async def start_download(background_tasks: BackgroundTasks, start_row: int = 0, num_rows: int = 0, filename: str = "GRI_2017_2020.xlsx",  current_user: User = Depends(get_current_admin_user), session: Session = Depends(get_sync_db)):
+async def start_download(background_tasks: BackgroundTasks, start_row: Optional[int] = None, num_rows: Optional[int] = None, filename: str = "GRI_2017_2020.xlsx",  current_user: User = Depends(get_current_admin_user), session: Session = Depends(get_sync_db)):
     if not current_user.is_admin == "True":
         raise HTTPException(status_code=403, detail="User is not an admin")
     try:
@@ -316,12 +331,12 @@ async def start_download(background_tasks: BackgroundTasks, start_row: int = 0, 
             name="Download Task",
             status="running",
             start_time=datetime.now(),
-            start_row=start_row,
-            num_rows=num_rows
+            start_row=start_row if start_row else 0,
+            num_rows=num_rows if num_rows else 0
         )
         session.add(new_task)
         session.commit()
-        background_tasks.add_task(download_task, db_dm, start_row, num_rows, task_id, session)
+        background_tasks.add_task(download_task, db_dm, start_row if start_row else 0, num_rows if num_rows else 0, task_id, session)
         return {"message": "Download started", "task_id": task_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
