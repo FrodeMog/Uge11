@@ -3,10 +3,14 @@ import api from '../api/api.js';
 import { AuthContext } from '../contexts/auth.js';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import Toast from 'react-bootstrap/Toast';
 import { Card, Button, Form, InputGroup, FormControl, DropdownButton, Dropdown, Row, Col } from 'react-bootstrap';
 
 const DownloadMetadata = () => {
     const { userToken } = useContext(AuthContext);
+
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
 
     const downloadFile = async (fileType) => {
         const fileName = `metadata_summary.${fileType}`;
@@ -24,7 +28,21 @@ const DownloadMetadata = () => {
             document.body.appendChild(link);
             link.click();
         } catch (error) {
-            console.error(`Failed to download ${fileType} file:`, error);
+            console.error('Failed to fetch resource:', error);
+            let errorMessage = 'Failed to fetch resource.';
+            if (error.response) {
+                if (error.response.data && error.response.data.detail) {
+                    errorMessage = typeof error.response.data.detail === 'object'
+                        ? JSON.stringify(error.response.data.detail)
+                        : error.response.data.detail;
+                } else if (error.response.status === 404) {
+                    errorMessage = 'Resource not found.';
+                } else if (error.response.status === 401) {
+                    errorMessage = 'Unauthorized.';
+                }
+            }
+            setToastMessage(errorMessage);
+            setShowToast(true);
         }
     };
 
@@ -39,6 +57,20 @@ const DownloadMetadata = () => {
                 <Button variant="primary" onClick={() => downloadFile('csv')}>
                     Download Metadata (csv)
                 </Button>
+                <Toast
+                    style={{
+                        position: 'absolute',
+                        top: '30%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                    }}
+                    show={showToast}
+                    onClose={() => setShowToast(false)}
+                    delay={3000}
+                    autohide
+                >
+                    <Toast.Body>{toastMessage}</Toast.Body>
+                </Toast>
             </Card.Body>
         </Card>
     );
