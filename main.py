@@ -365,7 +365,7 @@ async def get_download_results(task_id: str, session: AsyncSession = Depends(get
             "start_row": task.start_row,
             "num_rows": task.num_rows,
             "processed_rows": task.processed_rows,
-            "results": json.loads(results)
+            "results": json.loads(results) if results else []  # Check if results is not None before calling json.loads
         }
     elif task.status == "finished":
         results = task.results
@@ -377,7 +377,7 @@ async def get_download_results(task_id: str, session: AsyncSession = Depends(get
             "start_row": task.start_row,
             "num_rows": task.num_rows,
             "processed_rows": task.processed_rows,
-            "results": json.loads(results)
+            "results": json.loads(results) if results else []  # Check if results is not None before calling json.loads
         }
 
 #db_utils.reset_and_setup_db()
