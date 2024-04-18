@@ -37,7 +37,17 @@ const PdfFiles = () => {
                 const filters = {
                     ...filter
                 };
-                const response = await api.get(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filters)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
+                let filtersToSend = {};
+                if (filters) {
+                    filtersToSend = Object.keys(filters).reduce((acc, key) => {
+                        if (key && key !== "null" && filters[key] !== null && filters[key] !== "") {
+                            acc[key] = filters[key];
+                        }
+                        return acc;
+                    }, {});
+                }
+
+                const response = await api.get(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filtersToSend)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
                 setPdfFiles(response.data.pdfs);
                 setTotalPdfs(response.data.total_pdfs);
             } catch (error) {
