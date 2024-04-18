@@ -25,6 +25,8 @@ const PdfFiles = () => {
     const totalPages = Math.ceil(totalPdfs / pageSize);
     const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
+    const [submitPressed, setSubmitPressed] = useState(false);
+
     // State variable for the selected filter key
     const [selectedFilterKey, setSelectedFilterKey] = useState(null);
     // State variable for the selected filter value
@@ -46,6 +48,12 @@ const PdfFiles = () => {
                         return acc;
                     }, {});
                 }
+                // Check if filtersToSend is empty
+                if (Object.keys(filtersToSend).length === 0 && submitPressed) {
+                    setToastMessage("No filter select, or no filter value entered");
+                    setShowToast(true);
+                }
+                setSubmitPressed(false);
                 const response = await api.get(`/pdfs/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filtersToSend)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
                 setPdfFiles(response.data.pdfs);
                 setTotalPdfs(response.data.total_pdfs);
@@ -146,8 +154,7 @@ const PdfFiles = () => {
                             }
                         </DropdownButton>
                         <div className="p-0" style={{ width: '400px' }}>
-                            <form onSubmit={(e) => { e.preventDefault(); setFilter({ [selectedFilterKey]: selectedFilterValue }); }}>
-
+                            <form onSubmit={(e) => { e.preventDefault(); setFilter({ [selectedFilterKey]: selectedFilterValue }); setSubmitPressed(true); }}>
                                 <InputGroup className="mb-3">
                                     <FormControl
                                         placeholder="Filter value"
@@ -159,7 +166,7 @@ const PdfFiles = () => {
                                 </InputGroup>
                             </form>
                         </div>
-                        <Button onClick={() => setFilter({ [selectedFilterKey]: selectedFilterValue })} className="mr-2">Submit</Button>
+                        <Button onClick={() => { setFilter({ [selectedFilterKey]: selectedFilterValue }); setSubmitPressed(true); }} className="mr-2">Submit</Button>
                         <Button onClick={() => { setSelectedFilterKey(null); setSelectedFilterValue(''); setFilter({}); }} style={{ whiteSpace: 'nowrap' }}>Show all</Button>
                     </div>
                 </div>
@@ -236,8 +243,9 @@ const PdfFiles = () => {
                 <Toast
                     style={{
                         position: 'absolute',
-                        top: 100,
-                        right: 20,
+                        top: '5%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
                     }}
                     show={showToast}
                     onClose={() => setShowToast(false)}
