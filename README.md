@@ -27,7 +27,7 @@ Status | Technologies |
 Extras:
 ✅| FastAPI
 ✅| SQLAlchemy
-⬜| React 
+✅| React 
 
 ##### Featurelist
 Status | Feature | Comment
@@ -37,7 +37,7 @@ Status | Feature | Comment
 ✅| Database of `BRNummer` pdf-files with .csv file extract
 ✅| Specified folder-path storage of pdf-files
 Extras:
-⬜| FastAPI in front-end: Login Page for remote access of files
+✅| FastAPI in front-end: Login Page for remote access of files
 ⬜| FastAPI in front-end: Admin operation to run the download manager
 
 ##### Basic requirements - Time estimates
@@ -68,7 +68,7 @@ Day 4|  | 6h | Up to 2h extra
 ✅| Front-end: Basic structure | 1h | Day 4
 ✅| Front-end: Login page | 1h | Day 4
 ✅| Front-end: Basic download page | 1h | Day 4
-⬜| Front-end: advanced search download page | 3h | Day 4
+✅| Front-end: advanced search download page | 3h | Day 4
 ⬜| Front-end: Admin can register new users | 2h | Day 4
 Day 5|  | 6h | Up to 2h extra
 ⬜| Tests: unit-tests / manual-tests | 2h | Day 5

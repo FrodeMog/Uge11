@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, Enum, desc, delete, update, inspect, func, and_
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, Enum, desc, delete, update, inspect, func, and_, asc, desc
 from sqlalchemy.orm import declarative_base, validates
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound, IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -171,11 +171,16 @@ class BaseModel(Base):
     
     @classmethod
     @error_handler
-    async def get_range(cls, session, page, page_size, filters_dict):
+    async def get_range(cls, session, page, page_size, filters_dict, sort_by: Optional[str] = None, sort_order: Optional[str] = 'asc'):
         query = select(cls)
         if filters_dict:
             for key, value in filters_dict.items():
                 query = query.where(getattr(cls, key) == value['value'])
+        if sort_by and sort_by != "null":
+            if sort_order == 'asc':
+                query = query.order_by(asc(getattr(cls, sort_by)))
+            else:
+                query = query.order_by(desc(getattr(cls, sort_by)))
         query = query.offset((page - 1) * page_size).limit(page_size)
         result = await session.execute(query)
         return result.scalars().all()

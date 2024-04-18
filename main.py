@@ -178,15 +178,14 @@ async def get_pdfs(start_id: Optional[int] = None, end_id: Optional[int] = None,
     else:
         raise HTTPException(status_code=404, detail="No PDFs found in the given range")
     
-
 @app.get("/pdfs/page", response_model=PdfResponse)
-async def get_pdfs(page: Optional[int] = 1, page_size: Optional[int] = 100, filters: Optional[str] = None, session: AsyncSession = Depends(get_db)):
+async def get_pdfs(page: Optional[int] = 1, page_size: Optional[int] = 100, filters: Optional[str] = None, sort_by: Optional[str] = None, sort_order: Optional[str] = 'asc', session: AsyncSession = Depends(get_db)):
     if page < 1:
         raise HTTPException(status_code=400, detail="Page number must be at least 1")
     filters_dict = json.loads(filters) if filters else None
     if filters_dict:
         filters_dict = {key: {"field": key, "value": value} for key, value in filters_dict.items()}
-    result = await GRIPdf.get_range(session, page, page_size, filters_dict)
+    result = await GRIPdf.get_range(session, page, page_size, filters_dict, sort_by, sort_order)
     total_pdfs = await GRIPdf.get_count(session, filters_dict)
     if result:
         return {"pdfs": result, "total_pdfs": total_pdfs}

@@ -24,14 +24,21 @@ const PdfFiles = () => {
     const [totalPdfs, setTotalPdfs] = useState(0);
     const totalPages = Math.ceil(totalPdfs / pageSize);
     const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
-    const [filterDownloadStatus, setFilterDownloadStatus] = useState(null);
+
+    // State variable for the selected filter key
+    const [selectedFilterKey, setSelectedFilterKey] = useState(null);
+    // State variable for the selected filter value
+    const [selectedFilterValue, setSelectedFilterValue] = useState('');
+    const [filter, setFilter] = useState({});
 
     useEffect(() => {
         const fetchPdfFiles = async () => {
             try {
-                const filters = filterDownloadStatus !== null ? { download_status: filterDownloadStatus } : {};
-                const response = await api.get(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filters)}`);
-                console.log(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filters)}`);
+                const filters = {
+                    ...filter
+                };
+                const response = await api.get(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filters)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
+                console.log(`/pdfs/page/?page=${currentPage}&page_size=${pageSize}&filters=${JSON.stringify(filters)}&sort_by=${sortColumn}&sort_order=${sortDirection ? 'asc' : 'desc'}`);
                 setPdfFiles(response.data.pdfs);
                 setTotalPdfs(response.data.total_pdfs);
             } catch (error) {
@@ -39,7 +46,7 @@ const PdfFiles = () => {
             }
         };
         fetchPdfFiles();
-    }, [currentPage, pageSize, filterDownloadStatus]);
+    }, [currentPage, pageSize, filter, sortColumn, sortDirection]);
 
     const downloadPdf = async (pdfFile) => {
         try {
@@ -98,25 +105,40 @@ const PdfFiles = () => {
         return 0;
     });
 
-    const downloadedCount = sortedpdfFiles.filter(pdfFile => pdfFile.download_status === "TRUE").length;
-    const notDownloadedCount = sortedpdfFiles.filter(pdfFile => pdfFile.download_status === "FALSE").length;
-
 
     return (
         <div className="container">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h1 style={{ textAlign: 'left' }}>PDF files</h1>
-                <p>Successful downloads: {downloadedCount}</p>
-                <p>Failed downloads: {notDownloadedCount}</p>
-                <Button variant={filterDownloadStatus === null ? "primary" : "light"} onClick={() => setFilterDownloadStatus(null)}>
-                    Show all
-                </Button>
-                <Button variant={filterDownloadStatus === "TRUE" ? "primary" : "light"} onClick={() => setFilterDownloadStatus("TRUE")}>
-                    Show successful
-                </Button>
-                <Button variant={filterDownloadStatus === "FALSE" ? "primary" : "light"} onClick={() => setFilterDownloadStatus("FALSE")}>
-                    Show failed
-                </Button>
+                <div className="d-flex justify-content-between">
+                    <div className="col-3 p-0">
+                        <DropdownButton id="dropdown-basic-button" title={selectedFilterKey || "Select filter"}>
+                            {pdfFiles.length > 0 && Object.keys(pdfFiles[0])
+                                .filter(key => key !== 'pdf_url' && key !== 'pdf_backup_url' && key !== 'file_name')
+                                .map(key => (
+                                    <Dropdown.Item key={key} onClick={() => setSelectedFilterKey(key)}>
+                                        {key}
+                                    </Dropdown.Item>
+                                ))
+                            }
+                        </DropdownButton>
+                    </div>
+                    <div className="col-6 p-0">
+                        <InputGroup className="mb-3">
+                            <FormControl
+                                placeholder="Filter value"
+                                aria-label="Filter value"
+                                aria-describedby="basic-addon2"
+                                value={selectedFilterValue}
+                                onChange={e => setSelectedFilterValue(e.target.value)}
+                            />
+                        </InputGroup>
+                    </div>
+                    <div className="col-3 p-0 d-flex justify-content-between">
+                        <Button onClick={() => setFilter({ [selectedFilterKey]: selectedFilterValue })} className="mr-1">Submit</Button>
+                        <Button onClick={() => { setSelectedFilterKey(null); setSelectedFilterValue(''); setFilter({}); }} className="ml-1" style={{ whiteSpace: 'nowrap' }}>Show all</Button>
+                    </div>
+                </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <Pagination>
@@ -201,7 +223,7 @@ const PdfFiles = () => {
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>
-        </div>
+        </div >
     );
 
 };
