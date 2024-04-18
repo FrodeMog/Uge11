@@ -31,7 +31,6 @@ const Login = () => {
                 }
             });
             const { access_token } = response.data;
-            console.log(access_token);
         
             setuserToken(access_token); // Set the access token
         
