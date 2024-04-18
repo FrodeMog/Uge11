@@ -34,6 +34,25 @@ const RunDownloader = () => {
         }
     }, []);
 
+    const refreshFiles = () => {
+        try {
+            api.get('/list_files/pdf-urls/', {
+                headers: {
+                    'Authorization': `Bearer ${userToken}`
+                },
+            })
+                .then(response => {
+                    setFiles(response.data);
+                    // Set the selectedFile to the first file in the array
+                    if (response.data.length > 0) {
+                        setFormValues(prevValues => ({ ...prevValues, selectedFile: response.data[0] }));
+                    }
+                });
+        } catch (error) {
+            console.error('Error fetching files:', error);
+        }
+    };
+
     useEffect(() => {
         let interval = null;
 
@@ -120,6 +139,7 @@ const RunDownloader = () => {
                         ))}
                     </Form.Control>
                     <Button variant="primary" type="submit">Start Download</Button>
+                    <Button variant="secondary" onClick={refreshFiles}>Refresh Files</Button>
                 </Form>
                 {downloadProgress && formValues.numRows !== 0 && (
                     <>
