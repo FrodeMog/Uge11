@@ -64,7 +64,7 @@ function DownloadProgress({ taskId }) {
 
     return (
         <>
-            {downloadProgress ? (
+            {downloadProgress && downloadProgress.results  ? (
                 Array.isArray(downloadProgress) ? downloadProgress.map((progress, index) => (
                     <Card key={index} style={{ marginTop: '20px' }}>
                         <Card.Body>
