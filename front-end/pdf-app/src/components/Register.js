@@ -43,10 +43,14 @@ const Register = () => {
             setToastMessage('User: '+user.username+' created successfully!');
             setShowToast(true);
             setTimeout(() => setShowModal(false), 2000);
-        } catch (error) {
+        }catch (error) {
             console.error('Failed to create user:', error);
             // Extract the error message from the API response
-            const errorMessage = error.response?.data?.detail || 'Failed to create user.';
+            let errorMessage = error.response?.data?.detail || 'Failed to create user.';
+            // If the error message is an object, convert it to a string
+            if (typeof errorMessage === 'object') {
+                errorMessage = JSON.stringify(errorMessage);
+            }
             setToastMessage(errorMessage);
             setShowToast(true);
         }
