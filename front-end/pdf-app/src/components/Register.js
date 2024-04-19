@@ -26,7 +26,6 @@ const Register = () => {
 
         try {
             const response = await api.post('/users/create', user);
-            console.log(response.data);
 
             // Log in the user after registration
             const loginResponse = await api.post('/token', `username=${username}&password=${password}`, {
@@ -35,7 +34,6 @@ const Register = () => {
                 }
             });
             const { access_token } = loginResponse.data;
-            console.log(access_token);
         
             setuserToken(access_token); // Set the access token
         

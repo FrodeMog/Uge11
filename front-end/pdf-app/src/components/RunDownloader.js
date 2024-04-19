@@ -19,14 +19,12 @@ const RunDownloader = () => {
 
     // When taskIds changes, save it to local storage
     useEffect(() => {
-        console.log('Saving taskIds to local storage:', taskIds);
         localStorage.setItem('taskIds', JSON.stringify(taskIds));
     }, [taskIds]);
 
     // When the component mounts, retrieve taskIds from local storage
     useEffect(() => {
         const storedTaskIds = JSON.parse(localStorage.getItem('taskIds'));
-        console.log('Retrieved taskIds from local storage:', storedTaskIds);
         if (storedTaskIds) {
             setTaskIds(storedTaskIds);
         }
@@ -102,8 +100,6 @@ const RunDownloader = () => {
                     'Authorization': `Bearer ${userToken}`,
                 },
             });
-
-            console.log(response.data);
             setTaskIds(prevTaskIds => [...prevTaskIds, response.data.task_id]);
         } catch (error) {
             console.error('Failed to fetch resource:', error);

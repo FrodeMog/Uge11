@@ -60,10 +60,8 @@ function DownloadProgress({ taskId }) {
             if (storedTime) {
                 elapsedSeconds = Number(storedTime);
             } else {
-                console.log('start_time:', downloadProgress.start_time);
                 const runningTime = typeof downloadProgress.running_time === 'number' ? downloadProgress.running_time : 0;
                 elapsedSeconds = Math.floor((new Date() - new Date(downloadProgress.start_time)) / 1000) + runningTime;
-                console.log('elapsedSeconds:', elapsedSeconds);
                 localStorage.setItem(taskKey, elapsedSeconds.toString()); // Modify this line
             }
             const hours = Math.floor(elapsedSeconds / 3600);

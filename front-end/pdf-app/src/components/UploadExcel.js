@@ -38,7 +38,6 @@ const UploadExcel = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            console.log('File uploaded successfully');
             setToastMessage(`File: ${selectedFile.name} uploaded successfully`);
             setShowToast(true);
         } catch (error) {
