@@ -26,6 +26,7 @@ function DownloadProgress({ taskId }) {
                         const { num_rows, processed_rows, results, status, start_time, running_time, start_row, running_file } = response.data;
                         const progress = (processed_rows / num_rows) * 100;
                         setDownloadProgress({
+                            taskId,
                             progress,
                             results,
                             status,
@@ -53,7 +54,18 @@ function DownloadProgress({ taskId }) {
 
     useEffect(() => {
         if (downloadProgress && downloadProgress.status === 'finished') {
-            const elapsedSeconds = Math.floor((new Date() - new Date(downloadProgress.start_time)) / 1000) + downloadProgress.running_time;
+            let elapsedSeconds;
+            const taskKey = `finalElapsedTime_${downloadProgress.taskId}`; // Modify this line
+            const storedTime = localStorage.getItem(taskKey); // Modify this line
+            if (storedTime) {
+                elapsedSeconds = Number(storedTime);
+            } else {
+                console.log('start_time:', downloadProgress.start_time);
+                const runningTime = typeof downloadProgress.running_time === 'number' ? downloadProgress.running_time : 0;
+                elapsedSeconds = Math.floor((new Date() - new Date(downloadProgress.start_time)) / 1000) + runningTime;
+                console.log('elapsedSeconds:', elapsedSeconds);
+                localStorage.setItem(taskKey, elapsedSeconds.toString()); // Modify this line
+            }
             const hours = Math.floor(elapsedSeconds / 3600);
             const minutes = Math.floor((elapsedSeconds % 3600) / 60);
             const seconds = (elapsedSeconds % 60).toFixed(2);
@@ -64,7 +76,7 @@ function DownloadProgress({ taskId }) {
 
     return (
         <>
-            {downloadProgress && downloadProgress.results  ? (
+            {downloadProgress && downloadProgress.results ? (
                 Array.isArray(downloadProgress) ? downloadProgress.map((progress, index) => (
                     <Card key={index} style={{ marginTop: '20px' }}>
                         <Card.Body>

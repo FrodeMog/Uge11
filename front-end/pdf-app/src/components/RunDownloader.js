@@ -73,6 +73,19 @@ const RunDownloader = () => {
         }
     };
 
+    const clearTasks = () => {
+        // Clear taskIds from state
+        setTaskIds([]);
+
+        // Clear finalElapsedTime_xxx from localStorage
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('finalElapsedTime_')) {
+                localStorage.removeItem(key);
+            }
+        }
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -141,7 +154,7 @@ const RunDownloader = () => {
                     <div>
                         <Button variant="primary" type="submit" style={{ marginRight: '10px' }}>Start Download</Button>
                         <Button variant="secondary" onClick={refreshFiles} style={{ marginRight: '10px' }}>Refresh Files</Button>
-                        <Button variant="danger" onClick={() => setTaskIds([])}>Clear Tasks</Button>
+                        <Button variant="danger" onClick={clearTasks}>Clear Tasks</Button>
                     </div>
                     <Card style={{ marginTop: '20px' }}>
                         <Card.Body>
