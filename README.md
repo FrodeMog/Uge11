@@ -69,19 +69,31 @@ Day 4|  | 6h | Up to 2h extra
 ✅| Front-end: Login page | 1h | Day 4
 ✅| Front-end: Basic download page | 1h | Day 4
 ✅| Front-end: advanced search download page | 3h | Day 4
-⬜| Front-end: Admin can register new users | 2h | Day 4
+⚠️| Front-end: Admin can register new users | 2h | Day 4
 Day 5|  | 6h | Up to 2h extra
 ✅| Front-end: advanced admin page | 3h | Day 5
-⬜| Tests: unit-tests / manual-tests | 2h | Day 5
-⬜| Easy launch and setup: launch script, etc | 2h | Day 5
-⬜| Documentation: Readme, Setup and charts | 2h | Day 5
+⚠️| Tests: ~~unit-tests~~ / manual-tests | 2h | Manual testing only
+✅| Easy launch and setup: launch script, etc | 2h | Day 5
+✅| Documentation: Readme, Setup and charts | 2h | Day 5
 Total |  | 30h-40h | 5 Days
 
 ##### Diagrams
 ![initial_diagram](documentation/initial_diagram.png)
 
+# AUTOMATIC Installation
+1. Install Node.js
+    [https://nodejs.org](https://nodejs.org)
+2. Install Python (tested for: 3.10 - 3.12)
+    [https://www.python.org/](https://www.python.org/)
+3. Run `setup.bat` as administrator (windows only)
+4. Login with the generated base users:
 
-# Installation
+| User Type | Username | Password |
+| --------- | -------- | -------- |
+| Admin     | `admin`  | `admin`  |
+| Normal    | `user`   | `user`   |
+
+# MANUAL Installation
 
 ## Python environment
 
@@ -100,37 +112,33 @@ Total |  | 30h-40h | 5 Days
     pip install -r requirements.txt
     ```
 
-## Create Database
-1. Create a mysql database with MySQL workbench or other ways
+## Optional: Create Database
+1. `OPTIONAL:` Create a mysql database with MySQL workbench or other ways
 
+## Create .env file
+1. Create a `.env` at `/`
 
-## Create Secret Files
-1. Create a `db_info.json` at `/`
-
-2. Add secret information
+2. Add information, include `USERNAME` and `PASSWORD` and other info for MySQL connection. Otherwise just keep them empty and set `LOCAL_DB_MODE=True` for local run.
 Example:
 ```
-{   
-    "username": "root",
-    "password": "root",
-    "db_name": "database_name",
-    "test_db_name": "test_database_name",
-    "hostname": "localhost"
-}
-```
+ENGINE=mysql
+ADAPTER=pymysql
+ASYNC_ADAPTER=aiomysql
+USERNAME=
+PASSWORD=
+DB_NAME=pdf_system
+TEST_DB_NAME=test_pdf_system
+HOSTNAME=localhost
+SECRET_KEY=
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
 
-3. Create a `jwt_info.json` at `/`
-
-4. Add secret information
-Example:
+LOCAL_DB_MODE=True
+LOCAL_DB_ASYNC_ENGINE=sqlite
+LOCAL_DB_ASYNC_ADAPTER=aiosqlite
+LOCAL_DB_ENGINE=sqlite
+LOCAL_DB_NAME=pdf_system.db
 ```
-{
-    "secret_key": "secret",
-    "algorithm": "HS256",
-    "access_token_expire_minutes": 60
-}
-```
-
 
 ## Install Front-end React requirements
 1. Install Node.js
