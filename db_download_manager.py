@@ -12,6 +12,7 @@ from db_classes import GRIPdf
 from pathlib import Path
 import time
 import csv
+from dotenv import load_dotenv
 
 # Set a default timeout for all socket operations
 socket.setdefaulttimeout(5)
@@ -24,12 +25,18 @@ class DownloadManager:
         self.folder = Path(__file__).parent / folder
         self.file_with_urls = file_with_urls
 
-        # Load database information from db_info.json
-        with open('db_info.json') as f:
-            db_info = json.load(f)
+        load_dotenv()
+
+        # Get the database information from the environment variables
+        engine = os.getenv('ENGINE')
+        adapter = os.getenv('ADAPTER')
+        username = os.getenv('USERNAME')
+        password = os.getenv('PASSWORD')
+        hostname = os.getenv('HOSTNAME')
+        db_name = os.getenv('DB_NAME')
 
         # Define the database URL
-        DATABASE_URL = f"mysql+pymysql://{db_info['username']}:{db_info['password']}@{db_info['hostname']}/{db_info['db_name']}"
+        DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
 
         # Create a SQLAlchemy engine
         engine = create_engine(DATABASE_URL)
