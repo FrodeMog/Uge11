@@ -88,12 +88,19 @@ Updated diagram for structure
 
 ##### Screenshots
 Dashboard for an admin, allows for downloading of metadata, running of excel files with BRnum and pdf_urls, and also to upload those excel files for future downloads.
+
 ![admin_dashboard](documentation/admin_dashboard.png)
+
 Running the download manager supports downloading with multiple tasks, however you can only run 1 task per file. The download manager will yield the live pogress so we can keep track of run time and stats. We can select start row, and number of rows to download. If left empty the download is till excel-file completion.
+
 ![download_progress](documentation/download_progress.png)
+
 Dashboard for a user, shows list of processed pdfs, with filters and sort
+
 ![user_dashboard](documentation/user_dashboard.png)
+
 API endpoints
+
 ![Swagger_doc](documentation/Swagger_doc.png)
 
 # AUTOMATIC Installation
