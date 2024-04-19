@@ -15,15 +15,16 @@ class DatabaseUtils:
         load_dotenv()
 
         # Get the database information from the environment variables
-        engine = os.getenv('ENGINE')
-        adapter = os.getenv('ADAPTER')
-        username = os.getenv('USERNAME')
-        password = os.getenv('PASSWORD')
-        hostname = os.getenv('HOSTNAME')
-        db_name = os.getenv('DB_NAME')
+        self.engine = os.getenv('ENGINE')
+        self.adapter = os.getenv('ADAPTER')
+        self.username = os.getenv('USERNAME')
+        self.password = os.getenv('PASSWORD')
+        self.hostname = os.getenv('HOSTNAME')
+        self.db_name = os.getenv('DB_NAME')
+        self.db_test_name = os.getenv('DB_TEST_NAME')
 
         # Define the database URL
-        DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
+        DATABASE_URL = f"{self.engine}+{self.adapter}://{self.username}:{self.password}@{self.hostname}/{self.db_name}"
 
         # Create a SQLAlchemy engine
         engine = create_engine(DATABASE_URL)
@@ -83,20 +84,16 @@ class DatabaseUtils:
             Base.metadata.drop_all(bind=self.engine)
 
     def create_schema(self):
-        # Load database information from db_info.json
-        with open('db_info.json') as f:
-            db_info = json.load(f)
-
         # Connect to the MySQL server (without specifying the database)
-        connection = pymysql.connect(host=db_info['hostname'],
-                                    user=db_info['username'],
-                                    password=db_info['password'])
+        connection = pymysql.connect(host=self.hostname,
+                                    user=self.username,
+                                    password=self.password)
 
         try:
             with connection.cursor() as cursor:
                 # Create databases (if they don't exist)
-                cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_info['db_name']}")
-                cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_info['test_db_name']}")
+                cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_name}")
+                cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_test_name}")
 
             # Commit the changes
             connection.commit()
