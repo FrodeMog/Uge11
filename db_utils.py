@@ -16,7 +16,6 @@ class DatabaseUtils:
 
         # Get the database information from the environment variables
         self.local_db_mode = os.getenv('LOCAL_DB_MODE')
-        print(self.local_db_mode)
         self.engine = os.getenv('ENGINE')
         self.local_db_engine = os.getenv('LOCAL_DB_ENGINE')
         self.adapter = os.getenv('ADAPTER')
@@ -96,17 +95,21 @@ class DatabaseUtils:
             Base.metadata.drop_all(bind=self.engine)
 
     def create_schema(self):
+        # If LOCAL_DB_MODE is True, don't try to connect to MySQL
+        if os.getenv('LOCAL_DB_MODE') == 'True':
+            return
+    
         # Connect to the MySQL server (without specifying the database)
         connection = pymysql.connect(host=self.hostname,
                                     user=self.username,
                                     password=self.password)
-
+    
         try:
             with connection.cursor() as cursor:
                 # Create databases (if they don't exist)
                 cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_name}")
                 cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_test_name}")
-
+    
             # Commit the changes
             connection.commit()
         finally:
