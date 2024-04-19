@@ -49,7 +49,7 @@ Day 1|  | 6h | Up to 2h extra
 ✅| Download manager: Try-catch of requirements | 1h | Day 1
 ✅| Download manager: Optimise for speed | 2h | Day 1
 ✅| Download manager: Optimise for stability | 2h | Day 1
-✅| Tests: unit-tests / manual-tests for todays work | 30m | Day 1
+✅| Tests: ~~unit-tests~~ / manual-tests for todays work | 30m | Day 1
 Day 2|  | 6h | Up to 2h extra
 ✅| Database: Setup ORMs | 1h | Day 2
 ✅| Database: Setup connection | 1h | Day 2
@@ -69,7 +69,7 @@ Day 4|  | 6h | Up to 2h extra
 ✅| Front-end: Login page | 1h | Day 4
 ✅| Front-end: Basic download page | 1h | Day 4
 ✅| Front-end: advanced search download page | 3h | Day 4
-⚠️| Front-end: Admin can register new users | 2h | Day 4
+⚠️| Front-end: Admin can register new admin users | 2h | Everyone can register, but admin dashboard lacks creation of new admin users.
 Day 5|  | 6h | Up to 2h extra
 ✅| Front-end: advanced admin page | 3h | Day 5
 ⚠️| Tests: ~~unit-tests~~ / manual-tests | 2h | Manual testing only
@@ -78,7 +78,14 @@ Day 5|  | 6h | Up to 2h extra
 Total |  | 30h-40h | 5 Days
 
 ##### Diagrams
+Initial diagram for planned structure
 ![initial_diagram](documentation/initial_diagram.png)
+
+Updated diagram for structure
+![finished_diagram](documentation/finished_diagram.png)
+
+##### Screenshots
+
 
 # AUTOMATIC Installation
 1. Install Node.js
@@ -193,3 +200,9 @@ localhost:3000
 | --------- | -------- | -------- |
 | Admin     | `admin`  | `admin`  |
 | Normal    | `user`   | `user`   |
+
+# Known Issues
+1. Switching between local.db and mysql can give unsynced pdfs and data tables.
+2. Switching between local.db and mysql can give issues with client side localstorage
+3. csv file implementation isn't tested
+4. excel files with wrong column names might cause crashes / is not testet
