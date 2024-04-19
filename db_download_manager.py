@@ -88,6 +88,8 @@ class DownloadManager:
         if download_status == 'FALSE':
             file_folder = ""
             file_name = ""
+        # Convert the file_folder to a string
+        file_folder = str(file_folder)
         # Start a new SQLAlchemy session
         with self.SessionLocal() as session:
             # Use the create_pdf_sync method to create a new GRIPdf object

@@ -11,6 +11,7 @@ db_info.json
 jwt_info.json
 pdf-files/
 pdf-summary/
+pdf_system.db
 
 # Distribution / packaging
 .Python

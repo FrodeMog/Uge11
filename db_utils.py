@@ -16,6 +16,7 @@ class DatabaseUtils:
 
         # Get the database information from the environment variables
         self.local_db_mode = os.getenv('LOCAL_DB_MODE')
+        print(self.local_db_mode)
         self.engine = os.getenv('ENGINE')
         self.local_db_engine = os.getenv('LOCAL_DB_ENGINE')
         self.adapter = os.getenv('ADAPTER')
