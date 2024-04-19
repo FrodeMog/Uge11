@@ -14,4 +14,4 @@ openpyxl==3.1.2
 tqdm==4.66.2
 aiomysql==0.2.0
 python-dotenv==1.0.1
-asyncpg==0.29.0
+aiosqlite==0.20.0

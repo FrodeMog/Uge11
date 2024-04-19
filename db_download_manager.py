@@ -38,7 +38,7 @@ class DownloadManager:
         self.db_name = os.getenv('DB_NAME')
         self.db_test_name = os.getenv('DB_TEST_NAME')
     
-        if self.local_db_mode:
+        if self.local_db_mode == "True":
             # Use SQLite for local DB mode
             # Get the directory of this script
             dir_path = os.path.dirname(os.path.realpath(__file__))

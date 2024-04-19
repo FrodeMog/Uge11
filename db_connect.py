@@ -7,10 +7,13 @@ import os
 
 class DatabaseConnect:
     def __init__(self, db_url):
+        load_dotenv()
+        local_db_mode = os.getenv('LOCAL_DB_MODE')
+        connect_args = {'timeout': 5} if not local_db_mode else {}
         self.engine = create_async_engine(
             db_url,
-            connect_args={'connect_timeout': 5}
-            #,echo=True
+            connect_args=connect_args,
+            #echo=True
         )
         self.sessionmaker = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
 
@@ -26,16 +29,23 @@ class DatabaseConnect:
     async def connect_from_config():
         load_dotenv()
 
-        # Get the database information from the environment variables
-        engine = os.getenv('ENGINE')
-        adapter = os.getenv('ASYNC_ADAPTER')
-        username = os.getenv('USERNAME')
-        password = os.getenv('PASSWORD')
-        hostname = os.getenv('HOSTNAME')
-        db_name = os.getenv('DB_NAME')
+        local_db_mode = os.getenv('LOCAL_DB_MODE')
 
-        # Define the database URL
-        DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
+        if local_db_mode == 'True':
+            # Use local database settings
+            engine = os.getenv('LOCAL_DB_ASYNC_ENGINE')
+            adapter = os.getenv('LOCAL_DB_ASYNC_ADAPTER')
+            db_name = os.getenv('LOCAL_DB_NAME')
+            DATABASE_URL = f"{engine}+{adapter}:///{db_name}"
+        else:
+            # Use production database settings
+            engine = os.getenv('ENGINE')
+            adapter = os.getenv('ASYNC_ADAPTER')
+            username = os.getenv('USERNAME')
+            password = os.getenv('PASSWORD')
+            hostname = os.getenv('HOSTNAME')
+            db_name = os.getenv('DB_NAME')
+            DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
 
         db_connect = DatabaseConnect(DATABASE_URL)
 
@@ -53,8 +63,7 @@ class DatabaseConnectSync:
         if not hasattr(self, 'engine'):
             self.engine = create_engine(
                 db_url,
-                connect_args={'connect_timeout': 5}
-                #,echo=True
+                #echo=True
             )
             self.sessionmaker = sessionmaker(self.engine, expire_on_commit=False)
 
@@ -70,16 +79,22 @@ class DatabaseConnectSync:
     def connect_from_config():
         load_dotenv()
 
-        # Get the database information from the environment variables
-        engine = os.getenv('ENGINE')
-        adapter = os.getenv('ADAPTER')
-        username = os.getenv('USERNAME')
-        password = os.getenv('PASSWORD')
-        hostname = os.getenv('HOSTNAME')
-        db_name = os.getenv('DB_NAME')
+        local_db_mode = os.getenv('LOCAL_DB_MODE')
 
-        # Define the database URL
-        DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
+        if local_db_mode == 'True':
+            # Use local database settings
+            engine = os.getenv('LOCAL_DB_ENGINE')
+            db_name = os.getenv('LOCAL_DB_NAME')
+            DATABASE_URL = f"{engine}:///{db_name}"
+        else:
+            # Use production database settings
+            engine = os.getenv('ENGINE')
+            adapter = os.getenv('ADAPTER')
+            username = os.getenv('USERNAME')
+            password = os.getenv('PASSWORD')
+            hostname = os.getenv('HOSTNAME')
+            db_name = os.getenv('DB_NAME')
+            DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
 
         db_connect = DatabaseConnectSync(DATABASE_URL)
 
