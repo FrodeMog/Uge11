@@ -79,9 +79,11 @@ Total |  | 30h-40h | 5 Days
 
 ##### Diagrams
 Initial diagram for planned structure
+
 ![initial_diagram](documentation/initial_diagram.png)
 
 Updated diagram for structure
+
 ![finished_diagram](documentation/finished_diagram.png)
 
 ##### Screenshots
