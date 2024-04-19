@@ -53,57 +53,6 @@ class BaseModel(Base):
         return str({column.name: getattr(self, column.name) for column in self.__table__.columns if hasattr(self, column.name)})
     
     @classmethod
-    @error_handler
-    async def get_by_field_value(cls, session, field, value, comparison: str = 'eq', order: str = 'asc'):
-        field = field.lower()
-        if not hasattr(cls, field):
-            raise HTTPException(status_code=400, detail=f"Invalid field: {field}")
-        
-        comparison_mapping = {
-            'eq': getattr(cls, field) == value,
-            'gt': getattr(cls, field) > value,
-            'lt': getattr(cls, field) < value,
-            'gte': getattr(cls, field) >= value,
-            'lte': getattr(cls, field) <= value,
-            'ne': getattr(cls, field) != value,
-        }
-        comparison_descriptions = {
-            'eq': 'equal',
-            'gt': 'greater than',
-            'lt': 'less than',
-            'gte': 'greater than or equal to',
-            'lte': 'less than or equal to',
-            'ne': 'not equal',
-        }
-        
-        order_mapping = {
-            'asc': getattr(cls, field).asc(),
-            'desc': getattr(cls, field).desc()
-        }
-        order_descriptions = {
-            'asc': 'ascending',
-            'desc': 'descending',
-        }
-        
-        if comparison not in comparison_mapping:
-            raise HTTPException(status_code=400, detail=f"Invalid comparison operator: {comparison}, Valid values are: {', '.join(f'{k}={v}' for k, v in comparison_descriptions.items())}")
-        if order not in order_mapping:
-            raise HTTPException(status_code=400, detail=f"Invalid order: {order}, Valid values are: {', '.join(f'{k}={v}' for k, v in order_descriptions.items())}")
-        
-        query = select(cls).where(comparison_mapping[comparison])
-        if order == 'asc':
-            query = query.order_by(getattr(cls, field))
-        elif order == 'desc':
-            query = query.order_by(desc(getattr(cls, field)))
-        
-        result = await session.execute(query)
-        results = result.scalars().all()
-
-        if not results:
-            raise HTTPException(status_code=404, detail=f"No {cls.__name__} found with field {field} {comparison_descriptions[comparison]} {value}")
-        return results
-
-    @classmethod
     # Dont user error_handler decorator here
     async def check_if_exists(cls, session, field, value):
         query = select(cls).where(getattr(cls, field) == value)
