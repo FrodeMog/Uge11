@@ -29,17 +29,18 @@ from os.path import isfile, join, exists
 import time
 import uuid
 
+from dotenv import load_dotenv
+
 import uvicorn
 #uvicorn main:app --reload
 #npx create-react-app storage-app
 #http://localhost:8000/docs
 
-with open('jwt_info.json') as f:
-    jwt_info = json.load(f)
-
-SECRET_KEY = jwt_info['secret_key']
-ALGORITHM = jwt_info['algorithm']
-ACCESS_TOKEN_EXPIRE_MINUTES = jwt_info['access_token_expire_minutes']
+# Get the database information from the environment variables
+load_dotenv()
+SECRET_KEY = os.getenv('SECRET_KEY')
+ALGORITHM = os.getenv('ALGORITHM')
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

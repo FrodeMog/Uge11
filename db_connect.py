@@ -2,7 +2,8 @@ import json
 from sqlalchemy.ext.asyncio import create_async_engine,  AsyncSession, AsyncEngine, AsyncConnection, AsyncResult
 from sqlalchemy.orm import sessionmaker , Session
 from sqlalchemy import create_engine
-
+from dotenv import load_dotenv
+import os
 
 class DatabaseConnect:
     def __init__(self, db_url):
@@ -23,17 +24,20 @@ class DatabaseConnect:
             
     @staticmethod
     async def connect_from_config():
-        # Load database information from db_info.json
-        with open('db_info.json') as f:
-            db_info = json.load(f)
+        load_dotenv()
 
-        username = db_info['username']
-        password = db_info['password']
-        hostname = db_info['hostname']
-        database_name = db_info['db_name']
+        # Get the database information from the environment variables
+        engine = os.getenv('ENGINE')
+        adapter = os.getenv('ASYNC_ADAPTER')
+        username = os.getenv('USERNAME')
+        password = os.getenv('PASSWORD')
+        hostname = os.getenv('HOSTNAME')
+        db_name = os.getenv('DB_NAME')
 
-        db_url = f"mysql+aiomysql://{username}:{password}@{hostname}/{database_name}"
-        db_connect = DatabaseConnect(db_url)
+        # Define the database URL
+        DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
+
+        db_connect = DatabaseConnect(DATABASE_URL)
 
         return db_connect
 
@@ -64,16 +68,19 @@ class DatabaseConnectSync:
             
     @staticmethod
     def connect_from_config():
-        # Load database information from db_info.json
-        with open('db_info.json') as f:
-            db_info = json.load(f)
+        load_dotenv()
 
-        username = db_info['username']
-        password = db_info['password']
-        hostname = db_info['hostname']
-        database_name = db_info['db_name']
+        # Get the database information from the environment variables
+        engine = os.getenv('ENGINE')
+        adapter = os.getenv('ADAPTER')
+        username = os.getenv('USERNAME')
+        password = os.getenv('PASSWORD')
+        hostname = os.getenv('HOSTNAME')
+        db_name = os.getenv('DB_NAME')
 
-        db_url = f"mysql+pymysql://{username}:{password}@{hostname}/{database_name}"
-        db_connect = DatabaseConnectSync(db_url)
+        # Define the database URL
+        DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
+
+        db_connect = DatabaseConnectSync(DATABASE_URL)
 
         return db_connect
