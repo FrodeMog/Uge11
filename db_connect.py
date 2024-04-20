@@ -9,7 +9,7 @@ class DatabaseConnect:
     def __init__(self, db_url):
         load_dotenv()
         local_db_mode = os.getenv('LOCAL_DB_MODE')
-        connect_args = {'timeout': 5} if not local_db_mode == "True" else {}
+        connect_args = {'connect_timeout': 5} if not local_db_mode == "True" else {}
         self.engine = create_async_engine(
             db_url,
             connect_args=connect_args,
