@@ -108,7 +108,7 @@ API endpoints
     [https://nodejs.org](https://nodejs.org)
 2. Install Python (tested for: 3.10 - 3.12)
     [https://www.python.org/](https://www.python.org/)
-3. Run `setup.bat` as administrator (windows only)
+3. Run `setup_run.bat` or `setup.bat`+`run.bat` as administrator (windows only)
 4. Login with the generated base users:
 
 | User Type | Username | Password |

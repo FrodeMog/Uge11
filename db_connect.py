@@ -43,9 +43,10 @@ class DatabaseConnect:
             adapter = os.getenv('ASYNC_ADAPTER')
             username = os.getenv('USERNAME')
             password = os.getenv('PASSWORD')
-            hostname = os.getenv('HOSTNAME')
+            hostname = os.getenv('MYSQL_HOSTNAME')
+            port = os.getenv('MYSQL_PORT')
             db_name = os.getenv('DB_NAME')
-            DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
+            DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}:{port}/{db_name}"
 
         db_connect = DatabaseConnect(DATABASE_URL)
 
@@ -92,9 +93,10 @@ class DatabaseConnectSync:
             adapter = os.getenv('ADAPTER')
             username = os.getenv('USERNAME')
             password = os.getenv('PASSWORD')
-            hostname = os.getenv('HOSTNAME')
+            hostname = os.getenv('MYSQL_HOSTNAME')
+            port = os.getenv('MYSQL_PORT')
             db_name = os.getenv('DB_NAME')
-            DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}/{db_name}"
+            DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}:{port}/{db_name}"
 
         db_connect = DatabaseConnectSync(DATABASE_URL)
 

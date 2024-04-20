@@ -21,7 +21,8 @@ class DatabaseUtils:
         self.adapter = os.getenv('ADAPTER')
         self.username = os.getenv('USERNAME')
         self.password = os.getenv('PASSWORD')
-        self.hostname = os.getenv('HOSTNAME')
+        self.hostname = os.getenv('MYSQL_HOSTNAME')
+        self.port = os.getenv('MYSQL_PORT')
         self.local_db_name = os.getenv('LOCAL_DB_NAME')
         self.db_name = os.getenv('DB_NAME')
         self.db_test_name = os.getenv('DB_TEST_NAME')
@@ -35,7 +36,7 @@ class DatabaseUtils:
             DATABASE_URL = f"{self.local_db_engine}:///{self.local_db_name}"
         else:
             # Use the existing database configuration for non-local DB mode
-            DATABASE_URL = f"{self.engine}+{self.adapter}://{self.username}:{self.password}@{self.hostname}/{self.db_name}"
+            DATABASE_URL = f"{self.engine}+{self.adapter}://{self.username}:{self.password}@{self.hostname}:{self.port}/{self.db_name}"
 
         # Create a SQLAlchemy engine
         engine = create_engine(DATABASE_URL)
