@@ -1,9 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-from enum import Enum
 from datetime import datetime
 from typing import List
-
 
 class Token(BaseModel):
     access_token: str

@@ -1,96 +1,40 @@
-import json
-from sqlalchemy.ext.asyncio import create_async_engine,  AsyncSession, AsyncEngine, AsyncConnection, AsyncResult
-from sqlalchemy.orm import sessionmaker , Session
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
 
-class DatabaseConnect:
-    def __init__(self, db_url):
+class BaseDatabaseConnect:
+    def __init__(self, async_mode, db_url=None):
         load_dotenv()
         local_db_mode = os.getenv('LOCAL_DB_MODE')
         connect_args = {'connect_timeout': 5} if not local_db_mode == "True" else {}
-        self.engine = create_async_engine(
-            db_url,
-            connect_args=connect_args,
-            #echo=True
-        )
-        self.sessionmaker = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
-
-    async def get_new_session(self):
-        self.session = self.sessionmaker()
-        return self.session
-
-    async def close(self):
-        await self.session.close()
-        await self.engine.dispose()
-            
-    @staticmethod
-    async def connect_from_config():
-        load_dotenv()
-
-        local_db_mode = os.getenv('LOCAL_DB_MODE')
-
-        if local_db_mode == 'True':
-            # Use local database settings
-            engine = os.getenv('LOCAL_DB_ASYNC_ENGINE')
-            adapter = os.getenv('LOCAL_DB_ASYNC_ADAPTER')
-            db_name = os.getenv('LOCAL_DB_NAME')
-            DATABASE_URL = f"{engine}+{adapter}:///{db_name}"
-        else:
-            # Use production database settings
-            engine = os.getenv('ENGINE')
-            adapter = os.getenv('ASYNC_ADAPTER')
-            username = os.getenv('USERNAME')
-            password = os.getenv('PASSWORD')
-            hostname = os.getenv('MYSQL_HOSTNAME')
-            port = os.getenv('MYSQL_PORT')
-            db_name = os.getenv('DB_NAME')
-            DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}:{port}/{db_name}"
-
-        db_connect = DatabaseConnect(DATABASE_URL)
-
-        return db_connect
-
-class DatabaseConnectSync:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(DatabaseConnectSync, cls).__new__(cls)
-        return cls._instance
-
-    def __init__(self, db_url):
-        if not hasattr(self, 'engine'):
-            self.engine = create_engine(
-                db_url,
-                #echo=True
-            )
-            self.sessionmaker = sessionmaker(self.engine, expire_on_commit=False)
+        self.db_url = db_url if db_url else self.db_url_from_env(async_mode)
 
     def get_new_session(self):
         self.session = self.sessionmaker()
         return self.session
 
-    def close(self):
-        self.session.close()
-        self.engine.dispose()
-            
-    @staticmethod
-    def connect_from_config():
+    def get_engine(self):
+        return self.engine
+    
+    def get_db_url(self):
+        return self.db_url
+
+    def db_url_from_env(self, async_mode):
         load_dotenv()
-
         local_db_mode = os.getenv('LOCAL_DB_MODE')
-
+        
+        # Use local database settings
         if local_db_mode == 'True':
-            # Use local database settings
-            engine = os.getenv('LOCAL_DB_ENGINE')
+            engine = os.getenv('LOCAL_DB_ASYNC_ENGINE') if async_mode else os.getenv('LOCAL_DB_ENGINE')
+            adapter = os.getenv('LOCAL_DB_ASYNC_ADAPTER') if async_mode else None
             db_name = os.getenv('LOCAL_DB_NAME')
-            DATABASE_URL = f"{engine}:///{db_name}"
+            DATABASE_URL = f"{engine}+{adapter}:///{db_name}" if async_mode else f"{engine}:///{db_name}"
         else:
             # Use production database settings
             engine = os.getenv('ENGINE')
-            adapter = os.getenv('ADAPTER')
+            adapter = os.getenv('ASYNC_ADAPTER') if async_mode else os.getenv('ADAPTER')
             username = os.getenv('USERNAME')
             password = os.getenv('PASSWORD')
             hostname = os.getenv('MYSQL_HOSTNAME')
@@ -98,6 +42,40 @@ class DatabaseConnectSync:
             db_name = os.getenv('DB_NAME')
             DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}:{port}/{db_name}"
 
-        db_connect = DatabaseConnectSync(DATABASE_URL)
+        return DATABASE_URL
 
-        return db_connect
+
+class SyncDatabaseConnect(BaseDatabaseConnect):
+    def __init__(self, db_url=None, async_mode=False):
+        local_db_mode = os.getenv('LOCAL_DB_MODE')
+        connect_args = {'connect_timeout': 5} if not local_db_mode == "True" else {}
+        self.db_url = db_url if db_url else self.db_url_from_env(async_mode)
+        self.engine = create_engine(
+            self.db_url,
+            connect_args=connect_args,
+            #echo=True
+        )
+        self.sessionmaker = sessionmaker(self.engine, expire_on_commit=False)
+
+    def close(self):
+        self.session.close()
+        self.engine.dispose()
+
+    def new_session(self):
+        return self.sessionmaker()
+
+class AsyncDatabaseConnect(BaseDatabaseConnect):
+    def __init__(self, db_url=None, async_mode=True):
+        local_db_mode = os.getenv('LOCAL_DB_MODE')
+        connect_args = {'connect_timeout': 5} if not local_db_mode == "True" else {}
+        self.db_url = db_url if db_url else self.db_url_from_env(async_mode)
+        self.engine = create_async_engine(
+            self.db_url,
+            connect_args=connect_args,
+            #echo=True
+        )
+        self.sessionmaker = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)
+
+    async def close(self):
+        await self.session.close()
+        await self.engine.dispose()

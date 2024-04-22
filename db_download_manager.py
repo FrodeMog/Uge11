@@ -2,17 +2,15 @@ import os
 from tqdm import tqdm
 import urllib.request
 import socket
-import openpyxl
 from openpyxl import load_workbook
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db_classes import GRIPdf
+from db_connect import SyncDatabaseConnect
 from pathlib import Path
 import time
 import csv
-from dotenv import load_dotenv
 
 # Set a default timeout for all socket operations
 socket.setdefaulttimeout(5)
@@ -25,34 +23,9 @@ class DownloadManager:
         self.folder = Path(__file__).parent / folder
         self.file_with_urls = file_with_urls
 
-        load_dotenv()
+        db_connect = SyncDatabaseConnect()
+        DATABASE_URL = db_connect.get_db_url()
 
-        # Get the database information from the environment variables
-        self.local_db_mode = os.getenv('LOCAL_DB_MODE')
-        self.engine = os.getenv('ENGINE')
-        self.local_db_engine = os.getenv('LOCAL_DB_ENGINE')
-        self.adapter = os.getenv('ADAPTER')
-        self.username = os.getenv('USERNAME')
-        self.password = os.getenv('PASSWORD')
-        self.hostname = os.getenv('MYSQL_HOSTNAME')
-        self.port = os.getenv('MYSQL_PORT')
-        self.local_db_name = os.getenv('LOCAL_DB_NAME')
-        self.db_name = os.getenv('DB_NAME')
-        self.db_test_name = os.getenv('DB_TEST_NAME')
-    
-        if self.local_db_mode == "True":
-            # Use SQLite for local DB mode
-            # Get the directory of this script
-            dir_path = os.path.dirname(os.path.realpath(__file__))
-            # Join the directory path and the local DB name to get the full path to the SQLite database file
-            self.local_db_name = os.path.join(dir_path, self.local_db_name)
-            DATABASE_URL = f"{self.local_db_engine}:///{self.local_db_name}"
-        else:
-            # Use the existing database configuration for non-local DB mode
-            DATABASE_URL = f"{self.engine}+{self.adapter}://{self.username}:{self.password}@{self.hostname}:{self.port}/{self.db_name}"
-
-
-        # Create a SQLAlchemy engine
         engine = create_engine(DATABASE_URL)
 
         # Create a SQLAlchemy ORM session factory
@@ -76,7 +49,7 @@ class DownloadManager:
                         break
                     yield dict(zip(headers, row))
         elif file_extension in ['.xlsx', '.xlsm', '.xltx', '.xltm']:
-            workbook = openpyxl.load_workbook(filename=self.file_with_urls, read_only=True)
+            workbook = load_workbook(filename=self.file_with_urls, read_only=True)
             worksheet = workbook.active
             headers = [cell.value for cell in next(worksheet.iter_rows())]
             for i, row in enumerate(worksheet.iter_rows(min_row=start+2, max_row=start+nrows+1 if nrows else None), start=start):
@@ -209,12 +182,12 @@ class DownloadManager:
 
                 yield counters
 
-def main():
-    dm = DownloadManager(folder='pdf-files', file_with_urls='pdf-urls/GRI_2017_2020.xlsx')
-    start_row = 0
-    nrows = 20
-    for result in dm.start_download(start_row, nrows):
-        pass
+#def main():
+#    dm = DownloadManager(folder='pdf-files', file_with_urls='pdf-urls/GRI_2017_2020.xlsx')
+#    start_row = 0
+#    nrows = 20
+#    for result in dm.start_download(start_row, nrows):
+#        pass
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+#    main()

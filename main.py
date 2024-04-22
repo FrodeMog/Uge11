@@ -1,19 +1,18 @@
-from fastapi import FastAPI, HTTPException, status, Depends, Security, UploadFile, File, BackgroundTasks
+from fastapi import FastAPI, HTTPException, status, Depends, UploadFile, File, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 
 from db_pydantic_classes import *
 from db_classes import *
-from db_connect import DatabaseConnect
-from db_connect import DatabaseConnectSync
+from db_connect import AsyncDatabaseConnect, SyncDatabaseConnect
 from db_utils import DatabaseUtils
 from db_download_manager import DownloadManager
 
 from sqlalchemy.future import select
 from sqlalchemy import update
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from jose import JWTError, jwt
@@ -22,7 +21,7 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import json
 from json import JSONDecodeError
-from typing import List, Optional, Dict
+from typing import List, Optional
 import os
 from os import listdir
 from os.path import isfile, join, exists
@@ -73,15 +72,15 @@ app.add_middleware(
 )
 
 async def get_db():
-    db_connect = await DatabaseConnect.connect_from_config()
-    session = await db_connect.get_new_session()
+    db_connect = AsyncDatabaseConnect()
+    session = db_connect.get_new_session()
     try:
         yield session
     finally:
         await db_connect.close()
 
 def get_sync_db():
-    db_connect = DatabaseConnectSync.connect_from_config()
+    db_connect =  SyncDatabaseConnect()
     session = db_connect.get_new_session()
     try:
         yield session
