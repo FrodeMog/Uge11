@@ -1,0 +1,18 @@
+# Start from a base Node.js image
+FROM node:14
+
+# Set a working directory
+WORKDIR /app
+
+# Copy the package.json and package-lock.json, and install the npm dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy the rest of the application
+COPY . .
+
+# Expose the necessary port
+EXPOSE 3000
+
+# Set the command that will be executed when the Docker container starts
+CMD ["npm", "start"]

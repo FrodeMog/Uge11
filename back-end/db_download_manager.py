@@ -16,12 +16,12 @@ import csv
 socket.setdefaulttimeout(5)
 
 class DownloadManager:
-    def __init__(self, folder='pdf-files', file_with_urls='GRI_2017_2020.xlsx'):
+    def __init__(self, folder='pdf-files', file_with_urls='pdf-urls/GRI_2017_2020.xlsx'):
         # Create a folder to store the downloaded files
         if not os.path.exists(folder):
             os.makedirs(folder)
         self.folder = Path(__file__).parent / folder
-        self.file_with_urls = file_with_urls
+        self.file_with_urls = Path(__file__).parent / file_with_urls.replace('\\', '/')
 
         db_connect = SyncDatabaseConnect()
         DATABASE_URL = db_connect.get_db_url()
