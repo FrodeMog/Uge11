@@ -48,7 +48,21 @@ const RunDownloader = () => {
                     }
                 });
         } catch (error) {
-            console.error('Error fetching files:', error);
+            console.error('Failed to fetch resource:', error);
+            let errorMessage = 'Failed to fetch resource.';
+            if (error.response) {
+                if (error.response.data && error.response.data.detail) {
+                    errorMessage = typeof error.response.data.detail === 'object'
+                        ? JSON.stringify(error.response.data.detail)
+                        : error.response.data.detail;
+                } else if (error.response.status === 404) {
+                    errorMessage = 'Resource not found.';
+                } else if (error.response.status === 401) {
+                    errorMessage = 'Unauthorized.';
+                }
+            }
+            setToastMessage(errorMessage);
+            setShowToast(true);
         }
     }, []);
 
@@ -67,7 +81,21 @@ const RunDownloader = () => {
                     }
                 });
         } catch (error) {
-            console.error('Error fetching files:', error);
+            console.error('Failed to fetch resource:', error);
+            let errorMessage = 'Failed to fetch resource.';
+            if (error.response) {
+                if (error.response.data && error.response.data.detail) {
+                    errorMessage = typeof error.response.data.detail === 'object'
+                        ? JSON.stringify(error.response.data.detail)
+                        : error.response.data.detail;
+                } else if (error.response.status === 404) {
+                    errorMessage = 'Resource not found.';
+                } else if (error.response.status === 401) {
+                    errorMessage = 'Unauthorized.';
+                }
+            }
+            setToastMessage(errorMessage);
+            setShowToast(true);
         }
     };
 
@@ -83,6 +111,35 @@ const RunDownloader = () => {
             }
         }
     };
+
+    const cancelTasks = () => {
+        try {
+            taskIds.forEach(async taskId => {
+                const response = await api.post(`/cancel_running_tasks/${taskId}`, {}, {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                });
+            });
+        } catch (error) {
+            console.error('Failed to fetch resource:', error);
+            let errorMessage = 'Failed to fetch resource.';
+            if (error.response) {
+                if (error.response.data && error.response.data.detail) {
+                    errorMessage = typeof error.response.data.detail === 'object'
+                        ? JSON.stringify(error.response.data.detail)
+                        : error.response.data.detail;
+                } else if (error.response.status === 404) {
+                    errorMessage = 'Resource not found.';
+                } else if (error.response.status === 401) {
+                    errorMessage = 'Unauthorized.';
+                }
+            }
+            setToastMessage(errorMessage);
+            setShowToast(true);
+        }
+    };
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -150,7 +207,8 @@ const RunDownloader = () => {
                     <div>
                         <Button variant="primary" type="submit" style={{ marginRight: '10px' }}>Start Download</Button>
                         <Button variant="secondary" onClick={refreshFiles} style={{ marginRight: '10px' }}>Refresh Files</Button>
-                        <Button variant="danger" onClick={clearTasks}>Clear Tasks</Button>
+                        <Button variant="warning" onClick={clearTasks} style={{ marginRight: '10px' }}>Clear Tasks</Button>
+                        <Button variant="danger" onClick={cancelTasks}>Debug: Cancel Tasks</Button>
                     </div>
                     <Card style={{ marginTop: '20px' }}>
                         <Card.Body>

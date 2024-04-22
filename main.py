@@ -284,6 +284,24 @@ async def list_files(current_user: User = Depends(get_current_admin_user)):
     files = [f for f in listdir('pdf-files') if isfile(join('pdf-files', f))]
     return files
 
+@app.post("/cancel_running_tasks/{task_id}")
+async def cancel_running_task(task_id: str, current_user: User = Depends(get_current_admin_user), session: AsyncSession = Depends(get_db)):
+    result = await session.execute(select(RunningTask).where(RunningTask.task_id == task_id))
+    task = result.scalars().first()
+    if not task:
+        return {"message": "No such task"}
+    if task.status == "running":
+        stmt = (
+            update(RunningTask).
+            where(RunningTask.task_id == task_id).
+            values(status="cancelled")
+        )
+        await session.execute(stmt)
+        await session.commit()
+        return {"message": "Task cancelled"}
+    else:
+        return {"message": "Task is already finished"}
+
 #Have use sync session here, async session freezes the api
 def download_task(dm: DownloadManager, start_row: int, num_rows: int, task_id: str, session: Session = Depends(get_sync_db)):
     last_commit_time = time.time()
