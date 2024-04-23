@@ -5,14 +5,20 @@ FROM node:14
 WORKDIR /app
 
 # Copy the package.json and package-lock.json, and install the npm dependencies
-COPY package*.json ./
+COPY front-end/pdf-app/package*.json ./
 RUN npm install
 
+# Install serve
+RUN npm install -g serve
+
 # Copy the rest of the application
-COPY . .
+COPY front-end/pdf-app/ .
+
+# Build the application
+RUN npm run build
 
 # Expose the necessary port
-EXPOSE 3000
+EXPOSE 5000
 
 # Set the command that will be executed when the Docker container starts
-CMD ["npm", "start"]
+CMD ["serve", "-s", "build", "-l", "5000"]

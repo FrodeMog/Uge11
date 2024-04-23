@@ -2,6 +2,7 @@ import pymysql
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db_classes import *
+#from db_connect import SyncDatabaseConnect
 from sqlalchemy import inspect
 from werkzeug.security import generate_password_hash
 from openpyxl import Workbook
@@ -18,13 +19,16 @@ class DatabaseUtils:
         self.engine = os.getenv('ENGINE')
         self.local_db_engine = os.getenv('LOCAL_DB_ENGINE')
         self.adapter = os.getenv('ADAPTER')
-        self.username = os.getenv('USERNAME')
-        self.password = os.getenv('PASSWORD')
+        self.db_username = os.getenv('DB_USERNAME')
+        self.db_password = os.getenv('DB_PASSWORD')
         self.hostname = os.getenv('MYSQL_HOSTNAME')
         self.port = os.getenv('MYSQL_PORT')
         self.local_db_name = os.getenv('LOCAL_DB_NAME')
         self.db_name = os.getenv('DB_NAME')
         self.db_test_name = os.getenv('DB_TEST_NAME')
+
+        #db_connect = SyncDatabaseConnect()
+        #DATABASE_URL = db_connect.get_db_url()
     
         if self.local_db_mode == "True":
             # Use SQLite for local DB mode
@@ -35,8 +39,9 @@ class DatabaseUtils:
             DATABASE_URL = f"{self.local_db_engine}:///{self.local_db_name}"
         else:
             # Use the existing database configuration for non-local DB mode
-            DATABASE_URL = f"{self.engine}+{self.adapter}://{self.username}:{self.password}@{self.hostname}:{self.port}/{self.db_name}"
+            DATABASE_URL = f"{self.engine}+{self.adapter}://{self.db_username}:{self.db_password}@{self.hostname}:{self.port}/{self.db_name}"
 
+        print(DATABASE_URL)
         # Create a SQLAlchemy engine
         engine = create_engine(DATABASE_URL)
 
@@ -101,8 +106,8 @@ class DatabaseUtils:
     
         # Connect to the MySQL server (without specifying the database)
         connection = pymysql.connect(host=self.hostname,
-                                    user=self.username,
-                                    password=self.password)
+                                    user=self.db_username,
+                                    password=self.db_password)
     
         try:
             with connection.cursor() as cursor:

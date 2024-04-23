@@ -74,6 +74,7 @@ app.add_middleware(
 async def get_db():
     db_connect = AsyncDatabaseConnect()
     session = db_connect.get_new_session()
+    print(db_connect.get_db_url())
     try:
         yield session
     finally:
@@ -82,6 +83,7 @@ async def get_db():
 def get_sync_db():
     db_connect =  SyncDatabaseConnect()
     session = db_connect.get_new_session()
+    print(db_connect.get_db_url())
     try:
         yield session
     finally:
@@ -396,7 +398,7 @@ async def get_download_results(task_id: str, session: AsyncSession = Depends(get
         results = task.results
         await session.commit()
         return {
-            "status": "finished",
+            "status": "finished",   
             "start_time": task.start_time,
             "running_time": task.end_time - task.start_time,
             "start_row": task.start_row,

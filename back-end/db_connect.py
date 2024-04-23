@@ -2,13 +2,11 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
+import pymysql
 import os
 
 class BaseDatabaseConnect:
     def __init__(self, async_mode, db_url=None):
-        load_dotenv()
-        local_db_mode = os.getenv('LOCAL_DB_MODE')
-        connect_args = {'connect_timeout': 5} if not local_db_mode == "True" else {}
         self.db_url = db_url if db_url else self.db_url_from_env(async_mode)
 
     def get_new_session(self):
@@ -35,12 +33,12 @@ class BaseDatabaseConnect:
             # Use production database settings
             engine = os.getenv('ENGINE')
             adapter = os.getenv('ASYNC_ADAPTER') if async_mode else os.getenv('ADAPTER')
-            username = os.getenv('USERNAME')
-            password = os.getenv('PASSWORD')
+            db_username = os.getenv('DB_USERNAME')
+            db_password = os.getenv('DB_PASSWORD')
             hostname = os.getenv('MYSQL_HOSTNAME')
             port = os.getenv('MYSQL_PORT')
             db_name = os.getenv('DB_NAME')
-            DATABASE_URL = f"{engine}+{adapter}://{username}:{password}@{hostname}:{port}/{db_name}"
+            DATABASE_URL = f"{engine}+{adapter}://{db_username}:{db_password}@{hostname}:{port}/{db_name}"
 
         return DATABASE_URL
 
@@ -52,7 +50,7 @@ class SyncDatabaseConnect(BaseDatabaseConnect):
         self.db_url = db_url if db_url else self.db_url_from_env(async_mode)
         self.engine = create_engine(
             self.db_url,
-            connect_args=connect_args,
+            #connect_args=connect_args,
             #echo=True
         )
         self.sessionmaker = sessionmaker(self.engine, expire_on_commit=False)
@@ -71,7 +69,7 @@ class AsyncDatabaseConnect(BaseDatabaseConnect):
         self.db_url = db_url if db_url else self.db_url_from_env(async_mode)
         self.engine = create_async_engine(
             self.db_url,
-            connect_args=connect_args,
+            #connect_args=connect_args,
             #echo=True
         )
         self.sessionmaker = sessionmaker(self.engine, expire_on_commit=False, class_=AsyncSession)

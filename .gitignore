@@ -12,6 +12,7 @@ jwt_info.json
 pdf-files/
 pdf-summary/
 pdf_system.db
+init.sql
 
 # Distribution / packaging
 .Python
