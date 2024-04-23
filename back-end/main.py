@@ -74,7 +74,6 @@ app.add_middleware(
 async def get_db():
     db_connect = AsyncDatabaseConnect()
     session = db_connect.get_new_session()
-    print(db_connect.get_db_url())
     try:
         yield session
     finally:
@@ -83,7 +82,6 @@ async def get_db():
 def get_sync_db():
     db_connect =  SyncDatabaseConnect()
     session = db_connect.get_new_session()
-    print(db_connect.get_db_url())
     try:
         yield session
     finally:
