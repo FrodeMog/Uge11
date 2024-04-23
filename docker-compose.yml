@@ -1,17 +1,20 @@
 services:
     db:
-        image: mysql:8.3.0
-        command: 
-            - /bin/sh
-            - -c
-            - |
-                exec mysqld --init-file /data/application/init.sql --pid-file=/var/lib/mysql/mysqld.pid
-        volumes:
-            - db_data:/var/lib/mysql
-            - ./init.sql:/data/application/init.sql
+        build: 
+            context: .
+            dockerfile: Dockerfile.mysqldb
+            args:
+                MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+                DB_USERNAME: ${DB_USERNAME}
+                DB_PASSWORD: ${DB_PASSWORD}
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-            MYSQL_DATABASE: ${DB_NAME}
+            MYSQL_DATABASE: pdf_system
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+        image: mysql:8.3.0
+        volumes:
+            - db_data:/var/lib/mysql
         ports:
             - "3307:3306"
     frontend:
@@ -26,25 +29,30 @@ services:
         build: 
             context: .
             dockerfile: Dockerfile.api
+            args:
+                DB_USERNAME: ${DB_USERNAME}
+                DB_PASSWORD: ${DB_PASSWORD}
+                SECRET_KEY: ${SECRET_KEY}
+        environment:
+            DB_USERNAME: ${DB_USERNAME}
+            DB_PASSWORD: ${DB_PASSWORD}
+            SECRET_KEY: ${SECRET_KEY}
+            ENGINE: mysql
+            ADAPTER: pymysql
+            ASYNC_ADAPTER: aiomysql
+            DB_NAME: pdf_system
+            TEST_DB_NAME: test_pdf_system
+            ALGORITHM: HS256
+            ACCESS_TOKEN_EXPIRE_MINUTES: 10060
+            LOCAL_DB_MODE: False
+            MYSQL_PORT: 3306
+            MYSQL_HOSTNAME: db
         ports:
             - "8000:8000"
         depends_on:
             - db
         env_file:
             - .env
-        environment:
-            ENGINE: ${ENGINE}
-            ADAPTER: ${ADAPTER}
-            ASYNC_ADAPTER: ${ASYNC_ADAPTER}
-            DB_NAME: ${DB_NAME}
-            TEST_DB_NAME: ${TEST_DB_NAME}
-            HOSTNAME: db
-            MYSQL_HOSTNAME: db
-            SECRET_KEY: ${SECRET_KEY}
-            ALGORITHM: ${ALGORITHM}
-            ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
-            DB_USERNAME: ${DB_USERNAME}
-            DB_PASSWORD: ${DB_PASSWORD}
         volumes:
             - ./back-end:/app
 volumes:

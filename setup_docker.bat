@@ -8,10 +8,4 @@ IF ERRORLEVEL 1 (
     exit /b
 )
 
-REM Run setup.py to generate .env file
-python setup.py
-
-REM Run docker-compose
-docker-compose -f "docker-compose.yml" up -d --build
-
-pause
+python newsetup.py

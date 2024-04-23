@@ -1,0 +1,18 @@
+# Use the official MySQL image as the base
+FROM mysql:8.3.0
+
+# Set the working directory
+WORKDIR /app
+
+# Set the MYSQL_ROOT_PASSWORD, environment variables
+ARG MYSQL_ROOT_PASSWORD
+ENV MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
+
+# Set the DB_USERNAME and DB_PASSWORD environment variables
+ARG DB_USERNAME
+ENV DB_USERNAME=$DB_USERNAME
+ARG DB_PASSWORD
+ENV DB_PASSWORD=$DB_PASSWORD
+
+# Copy the initialization script
+COPY ./init.sql /docker-entrypoint-initdb.d/init.sql
