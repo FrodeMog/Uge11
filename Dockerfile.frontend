@@ -1,5 +1,5 @@
 # Start from a base Node.js image
-FROM node:14
+FROM node:18-alpine
 
 # Set a working directory
 WORKDIR /app
@@ -7,8 +7,6 @@ WORKDIR /app
 # Copy the package.json and package-lock.json, and install the npm dependencies
 COPY front-end/pdf-app/package*.json ./
 RUN npm install
-
-# Install serve
 RUN npm install -g serve
 
 # Copy the rest of the application
