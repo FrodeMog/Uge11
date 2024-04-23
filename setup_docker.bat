@@ -8,4 +8,4 @@ IF ERRORLEVEL 1 (
     exit /b
 )
 
-python newsetup.py
+python setup.py
