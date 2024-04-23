@@ -2,7 +2,7 @@ import pymysql
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db_classes import *
-#from db_connect import SyncDatabaseConnect
+from db_connect import SyncDatabaseConnect
 from sqlalchemy import inspect
 from werkzeug.security import generate_password_hash
 from openpyxl import Workbook
@@ -27,9 +27,6 @@ class DatabaseUtils:
         self.db_name = os.getenv('DB_NAME')
         self.db_test_name = os.getenv('DB_TEST_NAME')
 
-        #db_connect = SyncDatabaseConnect()
-        #DATABASE_URL = db_connect.get_db_url()
-    
         if self.local_db_mode == "True":
             # Use SQLite for local DB mode
             # Get the directory of this script
@@ -37,22 +34,23 @@ class DatabaseUtils:
             # Join the directory path and the local DB name to get the full path to the SQLite database file
             self.local_db_name = os.path.join(dir_path, self.local_db_name)
             DATABASE_URL = f"{self.local_db_engine}:///{self.local_db_name}"
+            engine = create_engine(DATABASE_URL)
+
+            # Create a SQLAlchemy ORM session factory
+            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+            self.engine = engine
+            self.SessionLocal = SessionLocal
         else:
-            # Use the existing database configuration for non-local DB mode
-            DATABASE_URL = f"{self.engine}+{self.adapter}://{self.db_username}:{self.db_password}@{self.hostname}:{self.port}/{self.db_name}"
+            db_connect = SyncDatabaseConnect()
+            self.engine = db_connect.get_engine()
+            self.SessionLocal = db_connect.get_new_session()
+        
+        #cant run with docker
+        #self.create_schema()
 
-        print(DATABASE_URL)
-        # Create a SQLAlchemy engine
-        engine = create_engine(DATABASE_URL)
-
-        # Create a SQLAlchemy ORM session factory
-        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        self.engine = engine
-        self.SessionLocal = SessionLocal
-        self.create_schema()
 
     def extract_table_as_csv(self, table_name, file_name, folder_location="pdf-summary"):
-        db = self.SessionLocal()
+        db = self.SessionLocal
         query = db.query(table_name)
         with open(f"{folder_location}/{file_name}", 'w') as f:
             f.write(','.join([column.name for column in table_name.__table__.columns]) + '\n')
@@ -61,7 +59,7 @@ class DatabaseUtils:
         db.close()
     
     def extract_table_as_xlsx(self, table_name, file_name, folder_location="pdf-summary"):
-        db = self.SessionLocal()
+        db = self.SessionLocal
         query = db.query(table_name)
         workbook = Workbook()
         sheet = workbook.active
@@ -82,7 +80,7 @@ class DatabaseUtils:
         self.generate_user('admin', 'admin', 'admin@admin.com', "True")
 
     def generate_user(self, username, password, email, is_admin="False"):
-        db = self.SessionLocal()
+        db = self.SessionLocal
         #check if user exist
         user = db.query(User).filter(User.username == username).first() or db.query(User).filter(User.email == email).first()
         if user:
