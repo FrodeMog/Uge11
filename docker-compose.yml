@@ -17,6 +17,11 @@ services:
             - db_data:/var/lib/mysql
         ports:
             - "3307:3306"
+        healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            interval: 20s
+            timeout: 10s
+            retries: 10
     frontend:
         build: 
             context: .
@@ -50,7 +55,8 @@ services:
         ports:
             - "8000:8000"
         depends_on:
-            - db
+            db:
+                condition: service_healthy
         env_file:
             - .env
         volumes:
