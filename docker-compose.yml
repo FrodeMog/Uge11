@@ -29,7 +29,7 @@ services:
         ports:
             - "5000:5000"
         volumes:
-            - ./front-end/pdf-app:/app
+            - ./app/src:/usr/src/app/src
     api:
         build: 
             context: .
