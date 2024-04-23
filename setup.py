@@ -12,5 +12,11 @@ os.environ['SECRET_KEY'] = getpass.getpass(prompt='SECRET_KEY: ')
 if not os.path.exists('.env'):
     open('.env', 'a').close()
 
+# Run docker-compose down -v
+subprocess.run(['docker-compose', 'down', '-v'])
+
+# Prune dangling Docker images
+subprocess.run(['docker', 'image', 'prune', '-f'])
+
 # Run docker-compose up
 subprocess.run(['docker-compose', 'up', '--build', '--force-recreate', '-d'])
