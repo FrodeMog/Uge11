@@ -55,13 +55,18 @@ if not os.path.exists(directory):
     # If the directory doesn't exist, create it
     os.makedirs(directory)
 
-# Mount the directory
-app.mount("/pdf-files", StaticFiles(directory=directory), name="pdf-files")
+# Get the host's IP address from the environment variable
+host_ip = os.getenv('HOST_IP')
 
+# Define origins
 origins = [
-    "http://localhost:3000",  # React's default port
+    "http://localhost:3000", # Dev build port
+    "http://localhost:5000",  # React's default port
+    f"http://{host_ip}:5000"
 ]
 
+for origin in origins:
+    print(f"Origin: {origin}")
 
 app.add_middleware(
     CORSMiddleware,
