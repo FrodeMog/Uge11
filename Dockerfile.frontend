@@ -12,6 +12,10 @@ RUN npm install -g serve
 # Copy the rest of the application
 COPY front-end/pdf-app/ .
 
+# Add HOST_IP argument and create .env file
+ARG HOST_IP
+RUN echo "REACT_APP_HOST_IP=$HOST_IP" > .env
+
 # Build the application
 RUN npm run build
 
