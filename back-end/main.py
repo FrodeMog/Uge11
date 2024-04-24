@@ -65,9 +65,6 @@ origins = [
     f"http://{host_ip}:5000"
 ]
 
-for origin in origins:
-    print(f"Origin: {origin}")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
