@@ -39,7 +39,7 @@ class DatabaseUtils:
             # Create a SQLAlchemy ORM session factory
             SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
             self.engine = engine
-            self.SessionLocal = SessionLocal
+            self.SessionLocal = SessionLocal()
         else:
             db_connect = SyncDatabaseConnect()
             self.engine = db_connect.get_engine()
