@@ -28,6 +28,8 @@ services:
             dockerfile: Dockerfile.frontend
             args:
                 HOST_IP: ${HOST_IP}
+        environment:
+            HOST_IP: ${HOST_IP}
         ports:
             - "5000:5000"
         volumes:
