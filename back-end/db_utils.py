@@ -25,7 +25,8 @@ class DatabaseUtils:
         self.port = os.getenv('MYSQL_PORT')
         self.local_db_name = os.getenv('LOCAL_DB_NAME')
         self.db_name = os.getenv('DB_NAME')
-        self.db_test_name = os.getenv('DB_TEST_NAME')
+        self.db_test_name = os.getenv('TEST_DB_NAME')
+        self.docker_mode = os.getenv('DOCKER_MODE')
 
         if self.local_db_mode == "True":
             # Use SQLite for local DB mode
@@ -46,8 +47,8 @@ class DatabaseUtils:
             self.SessionLocal = db_connect.get_new_session()
         
         #cant run with docker
-        #self.create_schema()
-
+        if self.docker_mode == "False":
+            self.create_schema()
 
     def extract_table_as_csv(self, table_name, file_name, folder_location="pdf-summary"):
         db = self.SessionLocal

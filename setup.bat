@@ -20,9 +20,9 @@ if /i "%mode%"=="Y" (
     echo ADAPTER=pymysql>>.env
     echo ASYNC_ADAPTER=aiomysql>>.env
     set /p us=Please enter your MySQL username: 
-    echo USERNAME=!us!>>.env
+    echo DB_USERNAME=!us!>>.env
     set /p ps=Please your MySQL password: 
-    echo PASSWORD=!ps!>>.env
+    echo DB_PASSWORD=!ps!>>.env
     echo DB_NAME=pdf_system>>.env
     echo TEST_DB_NAME=test_pdf_system>>.env
     set /p hn=Please enter your MySQL hostname usually: localhost:
@@ -30,6 +30,7 @@ if /i "%mode%"=="Y" (
     set /p pt=Please enter your MySQL port usually: 3306:
     echo MYSQL_PORT=!pt!>>.env
     echo LOCAL_DB_MODE=False>>.env
+    echo DOCKER_MODE=False>>.env
 ) else (
     echo Invalid option. Please run the script again and choose either Y or N.
     pause
